@@ -32,8 +32,8 @@ namespace GraphicLib.OpenGl
     /// <summary>
     /// Memory leak fix
     /// </summary>
-    private float[] _positions = new float[2 * 4];
-    private float[] _colors = new float[3 * 4];
+    private float[] _positions = new float[2 * 8];
+    private float[] _colors = new float[3 * 8];
 
     private OpenGLGraphic()
     {
@@ -48,9 +48,9 @@ namespace GraphicLib.OpenGl
     {
       _windowSize = windowSize;
       _simpleShader = new ShaderProgram(Properties.Resources.SimpleVertexShader, Properties.Resources.SimpleFragmentShader, new VAO());
-      float[] projectionMatrix = new float[16];
+      /*float[] projectionMatrix = new float[16];
       Matrix.Matrix4Ortho(projectionMatrix, 0, _windowSize.Width, _windowSize.Height, 0, -1, 1);
-      _simpleShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
+      _simpleShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);*/
     }
 
     #region Implementation of IGraphic
@@ -66,6 +66,9 @@ namespace GraphicLib.OpenGl
     public bool Resize(int width, int height, float scaling, object drawingContainer = null)
     {
       _windowSize = new Size(Convert.ToInt32(width * scaling), Convert.ToInt32(height * scaling));
+      float[] projectionMatrix = new float[16];
+      Matrix.Matrix4Ortho(projectionMatrix, 0, _windowSize.Width, _windowSize.Height, 0, -1, 1);
+      _simpleShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
       return true;
     }
 
@@ -96,7 +99,19 @@ namespace GraphicLib.OpenGl
     /// <param name="height">The height.</param>
     public void FillRectangle(SolidBrush brush, int x, int y, int width, int height)
     {
-      GL.Disable(EnableCap.Texture2D);
+      FillRectangle(brush, (float)x, y, width, height);
+    }
+
+    /// <summary>
+    /// Fills the rectangle.
+    /// </summary>
+    /// <param name="brush">The brush.</param>
+    /// <param name="x">The x.</param>
+    /// <param name="y">The y.</param>
+    /// <param name="width">The width.</param>
+    /// <param name="height">The height.</param>
+    public void FillRectangle(SolidBrush brush, float x, float y, float width, float height)
+    {
       //It's not looks grate, but it fix memory leak
       _positions[0] = x; _positions[1] = y;
       _positions[2] = x + width; _positions[3] = y;
@@ -116,8 +131,7 @@ namespace GraphicLib.OpenGl
       _simpleShader.ChangeData(VBOdata.Color, _colors);
       _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
       _simpleShader.ChangeAttribute(VBOdata.Color, "color", 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-      _simpleShader.DrawArrays(BeginMode.Quads, 0, 4);
-      GL.Enable(EnableCap.Texture2D);
+      _simpleShader.DrawArrays(BeginMode.Polygon, 0, 4);
     }
 
     /// <summary>
@@ -153,6 +167,10 @@ namespace GraphicLib.OpenGl
     /// <param name="height">The height.</param>
     public void DrawImage(Image image, int x, int y, int width, int height)
     {
+      GL.Enable(EnableCap.Texture2D);
+      GL.Enable(EnableCap.Blend);
+      GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+
       var img = image as Bitmap;
       if (img == null)
         return;
@@ -188,6 +206,8 @@ namespace GraphicLib.OpenGl
       GL.Vertex2(x, y + height);
 
       GL.End();
+      GL.Disable(EnableCap.Blend);
+      GL.Disable(EnableCap.Texture2D);
     }
 
     /// <summary>
@@ -208,13 +228,7 @@ namespace GraphicLib.OpenGl
     /// <param name="pt2">The PT2.</param>
     public void DrawLine(Pen pen, Point pt1, Point pt2)
     {
-      GL.Disable(EnableCap.Texture2D);
-      GL.Color4(pen.Color);
-      GL.Begin(BeginMode.Lines);
-      GL.Vertex2(pt1.X, pt1.Y);
-      GL.Vertex2(pt2.X, pt2.Y);
-      GL.End();
-      GL.Enable(EnableCap.Texture2D);
+      DrawLine(pen, pt1.X, pt1.Y, pt2.X, pt2.Y);
     }
 
     /// <summary>
@@ -227,13 +241,25 @@ namespace GraphicLib.OpenGl
     /// <param name="y2">The y2.</param>
     public void DrawLine(Pen pen, float x1, float y1, float x2, float y2)
     {
-      GL.Disable(EnableCap.Texture2D);
-      GL.Color4(pen.Color);
-      GL.Begin(BeginMode.Lines);
-      GL.Vertex2(x1, y1);
-      GL.Vertex2(x2, y2);
-      GL.End();
-      GL.Enable(EnableCap.Texture2D);
+      //It's not looks grate, but it fix memory leak
+      _positions[0] = x1; _positions[1] = y1;
+      _positions[2] = x2; _positions[3] = y2;
+      Color4 color = new Color4(pen.Color.R * ColorFloat,
+                                pen.Color.G * ColorFloat,
+                                pen.Color.B * ColorFloat,
+                                pen.Color.A * ColorFloat);
+      for (int i = 0; i < 2; i++)
+      {
+        _colors[i * 3] = color.R;
+        _colors[i * 3 + 1] = color.G;
+        _colors[i * 3 + 2] = color.B;
+      }
+      _simpleShader.ChangeData(VBOdata.Positions, _positions);
+      _simpleShader.ChangeData(VBOdata.Color, _colors);
+      _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      _simpleShader.ChangeAttribute(VBOdata.Color, "color", 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+      GL.LineWidth(pen.Width);
+      _simpleShader.DrawArrays(BeginMode.Lines, 0, 2);
     }
 
     /// <summary>
@@ -243,6 +269,7 @@ namespace GraphicLib.OpenGl
     /// <param name="rect">The rect.</param>
     public void DrawRectangle(Pen pen, Rectangle rect)
     {
+      DrawRectangle(pen, rect.X, rect.Y, rect.Width, rect.Height);
     }
 
     /// <summary>
@@ -255,6 +282,11 @@ namespace GraphicLib.OpenGl
     /// <param name="height">The height.</param>
     public void DrawRectangle(Pen pen, int x, int y, int width, int height)
     {
+      var brush = new SolidBrush(pen.Color);
+      FillRectangle(brush, x - pen.Width / 2, y - pen.Width / 2, width + pen.Width, pen.Width);
+      FillRectangle(brush, x + width - pen.Width / 2, y - pen.Width / 2, pen.Width, height + pen.Width);
+      FillRectangle(brush, x - pen.Width / 2, y + height - pen.Width / 2, width + pen.Width, pen.Width);
+      FillRectangle(brush, x - pen.Width / 2, y - pen.Width / 2, pen.Width, height + pen.Width);
     }
 
     /// <summary>

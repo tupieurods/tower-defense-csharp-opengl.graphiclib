@@ -73,6 +73,19 @@ namespace GraphicLib.WinForms
     }
 
     /// <summary>
+    /// Fills the rectangle.
+    /// </summary>
+    /// <param name="brush">The brush.</param>
+    /// <param name="x">The x.</param>
+    /// <param name="y">The y.</param>
+    /// <param name="width">The width.</param>
+    /// <param name="height">The height.</param>
+    public void FillRectangle(SolidBrush brush, float x, float y, float width, float height)
+    {
+      _graphicalBuffer.Graphics.FillRectangle(brush, x, y, width, height);
+    }
+
+    /// <summary>
     /// Fills the ellipse.
     /// </summary>
     /// <param name="brush">The brush.</param>

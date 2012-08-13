@@ -33,6 +33,15 @@ namespace GraphicLib.Interfaces
     /// <param name="height">The height.</param>
     void FillRectangle(SolidBrush brush, int x, int y, int width, int height);
     /// <summary>
+    /// Fills the rectangle.
+    /// </summary>
+    /// <param name="brush">The brush.</param>
+    /// <param name="x">The x.</param>
+    /// <param name="y">The y.</param>
+    /// <param name="width">The width.</param>
+    /// <param name="height">The height.</param>
+    void FillRectangle(SolidBrush brush, float x, float y, float width, float height);
+    /// <summary>
     /// Fills the ellipse.
     /// </summary>
     /// <param name="brush">The brush.</param>
