@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace GraphicLib.OpenGl
@@ -29,18 +30,25 @@ namespace GraphicLib.OpenGl
       int vertexShader = GL.CreateShader(ShaderType.VertexShader);
       string shaderStr = vertexShaderSource.Aggregate("", (current, t) => current + Convert.ToChar(t));
       GL.ShaderSource(vertexShader, shaderStr);
+      //System.Windows.Forms.MessageBox.Show(shaderStr);
       //Фрагментный шейдер
       int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
       shaderStr = fragmentShaderSource.Aggregate("", (current, t) => current + Convert.ToChar(t));
       GL.ShaderSource(fragmentShader, shaderStr);
       //Компиляция
       GL.CompileShader(vertexShader);
+      /*int status;
+      GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out status);
+      System.Windows.Forms.MessageBox.Show("Vertex: " + status.ToString());*/
       GL.CompileShader(fragmentShader);
+      /*GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out status);
+      System.Windows.Forms.MessageBox.Show("Fragment: " + status.ToString());*/
       //Сборка шейдерной программы
       _shaderProgram = GL.CreateProgram();
       GL.AttachShader(_shaderProgram, vertexShader);
       GL.AttachShader(_shaderProgram, fragmentShader);
       GL.LinkProgram(_shaderProgram);
+      //System.Windows.Forms.MessageBox.Show(GL.GetError().ToString());
     }
 
     /// <summary>
@@ -64,7 +72,7 @@ namespace GraphicLib.OpenGl
     /// <param name="offset">The offset.</param>
     internal void ChangeAttribute(VBOdata VBOtype, string attributeName, int size, VertexAttribPointerType type, bool normalized, int stride, int offset)
     {
-      UsePorgram();
+      UseProgram();
       _vao.BindWithVBO(VBOtype);
       int attributeLocation = GL.GetAttribLocation(_shaderProgram, attributeName);
       if (attributeLocation != -1)
@@ -72,6 +80,8 @@ namespace GraphicLib.OpenGl
         GL.VertexAttribPointer(attributeLocation, size, type, normalized, stride, offset);
         GL.EnableVertexAttribArray(attributeLocation);
       }
+      else
+        throw new ShaderParametrNotFoundException();
       _vao.UnBindWithVBO(VBOtype);
       StopUseProgram();
     }
@@ -84,7 +94,7 @@ namespace GraphicLib.OpenGl
     /// <returns></returns>
     internal bool ChangeData(VBOdata VBOtype, float[] buffer)
     {
-      UsePorgram();
+      UseProgram();
       bool result = _vao.ChangeData(VBOtype, buffer);
       StopUseProgram();
       return result;
@@ -98,7 +108,7 @@ namespace GraphicLib.OpenGl
     /// <returns></returns>
     internal bool ChangeData(VBOdata VBOtype, uint[] buffer)
     {
-      UsePorgram();
+      UseProgram();
       bool result = _vao.ChangeData(VBOtype, buffer);
       StopUseProgram();
       return result;
@@ -107,7 +117,7 @@ namespace GraphicLib.OpenGl
     /// <summary>
     /// Sets this shader program as active on GPU
     /// </summary>
-    internal void UsePorgram()
+    private void UseProgram()
     {
       GL.UseProgram(_shaderProgram);
     }
@@ -115,7 +125,7 @@ namespace GraphicLib.OpenGl
     /// <summary>
     /// Sets this shader program as inactive on GPU
     /// </summary>
-    internal void StopUseProgram()
+    private static void StopUseProgram()
     {
       GL.UseProgram(0);
     }
@@ -128,10 +138,38 @@ namespace GraphicLib.OpenGl
     /// <param name="transpose">if set to <c>true</c> [transpose].</param>
     internal void UniformMatrix4(string matrixName, float[] matrix, bool transpose)
     {
-      UsePorgram();
+      UseProgram();
       int projectionMatrixLocation = GL.GetUniformLocation(_shaderProgram, matrixName);
       if (projectionMatrixLocation != -1)
         GL.UniformMatrix4(projectionMatrixLocation, 1, transpose, matrix);
+      else
+        throw new ShaderParametrNotFoundException();
+      StopUseProgram();
+    }
+
+    internal void Uniform1(string parametrName, float value)
+    {
+      UseProgram();
+      int parametrLocation = GL.GetUniformLocation(_shaderProgram, parametrName);
+      if (parametrLocation != -1)
+      {
+        GL.Uniform1(parametrLocation, value);
+      }
+      else
+        throw new ShaderParametrNotFoundException();
+      StopUseProgram();
+    }
+
+    internal void Uniform3(string parametrName, Vector3 value)
+    {
+      UseProgram();
+      int parametrLocation = GL.GetUniformLocation(_shaderProgram, parametrName);
+      if (parametrLocation != -1)
+      {
+        GL.Uniform3(parametrLocation, value);
+      }
+      else
+        throw new ShaderParametrNotFoundException();
       StopUseProgram();
     }
 
@@ -143,7 +181,7 @@ namespace GraphicLib.OpenGl
     /// <param name="count">The count.</param>
     internal void DrawArrays(BeginMode mode, int first, int count)
     {
-      UsePorgram();
+      UseProgram();
       _vao.Bind();
       GL.DrawArrays(mode, first, count);
       _vao.UnBind();
@@ -160,7 +198,7 @@ namespace GraphicLib.OpenGl
     {
       if (!_vao.VBOexists(VBOdata.Index))
         throw new VBONotFoundException("Index VBO not found");
-      UsePorgram();
+      UseProgram();
       _vao.BindWithVBO(VBOdata.Index);
       GL.DrawElements(mode, count, type, IntPtr.Zero);
       _vao.UnBindWithVBO(VBOdata.Index);

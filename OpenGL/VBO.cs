@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using OpenTK.Graphics.OpenGL;
 
 namespace GraphicLib.OpenGl
@@ -71,7 +72,7 @@ namespace GraphicLib.OpenGl
     {
       int size = dataBuffer.Length * sizeof(float);
       if (size > _currentSize)
-        Resize(size * 2);
+        Resize(size);
       Bind();
       GL.BufferSubData(_bufferTarget, new IntPtr(0), new IntPtr(size), dataBuffer);
       UnBind();
@@ -120,13 +121,14 @@ namespace GraphicLib.OpenGl
     /// </summary>
     /// <param name="VBOtype">The VBO data type.</param>
     /// <returns></returns>
-    static internal BufferTarget GetBufferTargetByType(VBOdata VBOtype)
+    private static BufferTarget GetBufferTargetByType(VBOdata VBOtype)
     {
       BufferTarget result;
       switch (VBOtype)
       {
         case VBOdata.Positions:
         case VBOdata.Color:
+        case VBOdata.TextureCoord:
           result = BufferTarget.ArrayBuffer;
           break;
         case VBOdata.Index:

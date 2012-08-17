@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using GraphicLib.Interfaces;
 using GraphicLib.OpenGL;
-using OpenTK.Graphics;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using GL = OpenTK.Graphics.OpenGL.GL;
 using BeginMode = OpenTK.Graphics.OpenGL.BeginMode;
@@ -27,30 +27,25 @@ namespace GraphicLib.OpenGl
 
     private readonly ShaderProgram _simpleShader;
 
+    private readonly ShaderProgram _textureShader;
+
     private const float ColorFloat = 1.0f / 255.0f;
 
     /// <summary>
     /// Memory leak fix
     /// </summary>
-    private float[] _positions = new float[2 * 8];
-    private float[] _colors = new float[3 * 8];
-
-    private OpenGLGraphic()
-    {
-    }
-
-    static OpenGLGraphic()
-    {
-
-    }
+    private readonly float[] _positions = new float[2 * 8];
 
     public OpenGLGraphic(Size windowSize)
     {
       _windowSize = windowSize;
       _simpleShader = new ShaderProgram(Properties.Resources.SimpleVertexShader, Properties.Resources.SimpleFragmentShader, new VAO());
-      /*float[] projectionMatrix = new float[16];
-      Matrix.Matrix4Ortho(projectionMatrix, 0, _windowSize.Width, _windowSize.Height, 0, -1, 1);
-      _simpleShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);*/
+      _textureShader = new ShaderProgram(Properties.Resources.SimpleTextureVertex, Properties.Resources.SimpleTextureFragment, new VAO());
+      float[] projectionMatrix = new float[16];
+      Matrix.Matrix4Ortho(projectionMatrix, 0, _windowSize.Width - 1, _windowSize.Height - 1, 0, -1, 1);
+      _simpleShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
+      _textureShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
+
     }
 
     #region Implementation of IGraphic
@@ -67,8 +62,9 @@ namespace GraphicLib.OpenGl
     {
       _windowSize = new Size(Convert.ToInt32(width * scaling), Convert.ToInt32(height * scaling));
       float[] projectionMatrix = new float[16];
-      Matrix.Matrix4Ortho(projectionMatrix, 0, _windowSize.Width, _windowSize.Height, 0, -1, 1);
+      Matrix.Matrix4Ortho(projectionMatrix, 0, _windowSize.Width - 1, _windowSize.Height - 1, 0, -1, 1);
       _simpleShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
+      _textureShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
       return true;
     }
 
@@ -83,8 +79,6 @@ namespace GraphicLib.OpenGl
       set
       {
         GL.Enable(EnableCap.ScissorTest);
-        //По идее должно быть как закоментированно, пока у OpenGL свои координаты с собственным преферансом и путанами
-        //GL.Scissor(value.X, value.Y, value.Width, value.Height);
         GL.Scissor(value.X, _windowSize.Height - value.Height - value.Y, value.Width, value.Height);
       }
     }
@@ -117,20 +111,9 @@ namespace GraphicLib.OpenGl
       _positions[2] = x + width; _positions[3] = y;
       _positions[4] = x + width; _positions[5] = y + height;
       _positions[6] = x; _positions[7] = y + height;
-      Color4 color = new Color4(brush.Color.R * ColorFloat,
-                                brush.Color.G * ColorFloat,
-                                brush.Color.B * ColorFloat,
-                                brush.Color.A * ColorFloat);
-      for (int i = 0; i < 4; i++)
-      {
-        _colors[i * 3] = color.R;
-        _colors[i * 3 + 1] = color.G;
-        _colors[i * 3 + 2] = color.B;
-      }
+      _simpleShader.Uniform3("fragmentColor", new Vector3(brush.Color.R * ColorFloat, brush.Color.G * ColorFloat, brush.Color.B * ColorFloat));
       _simpleShader.ChangeData(VBOdata.Positions, _positions);
-      _simpleShader.ChangeData(VBOdata.Color, _colors);
       _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
-      _simpleShader.ChangeAttribute(VBOdata.Color, "color", 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
       _simpleShader.DrawArrays(BeginMode.Polygon, 0, 4);
     }
 
@@ -144,6 +127,21 @@ namespace GraphicLib.OpenGl
     /// <param name="height">The height.</param>
     public void FillEllipse(SolidBrush brush, float x, float y, float width, float height)
     {
+      //It's not looks grate, but it fix memory leak
+      List<float> pos = new List<float>();
+      float xc = x + width / 2;
+      float yc = y + height / 2;
+      float A = width / 2.0f;
+      float B = height / 2.0f;
+      for (int i = 0; i <= 360; i++)
+      {
+        pos.Add(xc + (float)Math.Cos(i * Math.PI / 180) * A);
+        pos.Add(yc + (float)Math.Sin(i * Math.PI / 180) * B);
+      }
+      _simpleShader.Uniform3("fragmentColor", new Vector3(brush.Color.R * ColorFloat, brush.Color.G * ColorFloat, brush.Color.B * ColorFloat));
+      _simpleShader.ChangeData(VBOdata.Positions, pos.ToArray());
+      _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      _simpleShader.DrawArrays(BeginMode.Polygon, 0, pos.Count / 2);
     }
 
     /// <summary>
@@ -189,23 +187,21 @@ namespace GraphicLib.OpenGl
       }
       else
         tmp = Cache[hashCode];
+      _positions[0] = x; _positions[1] = y;
+      _positions[2] = x + width; _positions[3] = y;
+      _positions[4] = x + width; _positions[5] = y + height;
+      _positions[6] = x; _positions[7] = y + height;
+      _textureShader.ChangeData(VBOdata.Positions, _positions);
+      _textureShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      _positions[0] = 0.0f; _positions[1] = 0.0f;
+      _positions[2] = 1.0f; _positions[3] = 0.0f;
+      _positions[4] = 1.0f; _positions[5] = 1.0f;
+      _positions[6] = 0.0f; _positions[7] = 1.0f;
+      _textureShader.ChangeData(VBOdata.TextureCoord, _positions);
+      _textureShader.ChangeAttribute(VBOdata.TextureCoord, "texcoord", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
       tmp.Bind();
-      GL.Color4(Color4.White);
-      GL.Begin(BeginMode.Quads);
-
-      GL.TexCoord2(0, 0);
-      GL.Vertex2(x, y);
-
-      GL.TexCoord2(1, 0);
-      GL.Vertex2(x + width, y);
-
-      GL.TexCoord2(1, 1);
-      GL.Vertex2(x + width, y + height);
-
-      GL.TexCoord2(0, 1);
-      GL.Vertex2(x, y + height);
-
-      GL.End();
+      _textureShader.Uniform1("Texture", tmp.GlHandle);
+      _textureShader.DrawArrays(BeginMode.Polygon, 0, 4);
       GL.Disable(EnableCap.Blend);
       GL.Disable(EnableCap.Texture2D);
     }
@@ -244,20 +240,9 @@ namespace GraphicLib.OpenGl
       //It's not looks grate, but it fix memory leak
       _positions[0] = x1; _positions[1] = y1;
       _positions[2] = x2; _positions[3] = y2;
-      Color4 color = new Color4(pen.Color.R * ColorFloat,
-                                pen.Color.G * ColorFloat,
-                                pen.Color.B * ColorFloat,
-                                pen.Color.A * ColorFloat);
-      for (int i = 0; i < 2; i++)
-      {
-        _colors[i * 3] = color.R;
-        _colors[i * 3 + 1] = color.G;
-        _colors[i * 3 + 2] = color.B;
-      }
+      _simpleShader.Uniform3("fragmentColor", new Vector3(pen.Color.R * ColorFloat, pen.Color.G * ColorFloat, pen.Color.B * ColorFloat));
       _simpleShader.ChangeData(VBOdata.Positions, _positions);
-      _simpleShader.ChangeData(VBOdata.Color, _colors);
       _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
-      _simpleShader.ChangeAttribute(VBOdata.Color, "color", 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
       GL.LineWidth(pen.Width);
       _simpleShader.DrawArrays(BeginMode.Lines, 0, 2);
     }
@@ -299,6 +284,28 @@ namespace GraphicLib.OpenGl
     /// <param name="height">The height.</param>
     public void DrawEllipse(Pen pen, float x, float y, float width, float height)
     {
+      //It's not looks grate, but it fix memory leak
+      List<float> pos = new List<float>();
+
+      /*float Amax = 4 / (width * width);
+      float Amin = 4 / ((width - pen.Width - 1) * (width - pen.Width - 1));
+      float Bmax = 4 / (height * height);
+      float Bmin = 4 / ((height - pen.Width - 1) * (height - pen.Width - 1));*/
+      float xc = x + width / 2;
+      float yc = y + height / 2;
+      width /= 2;
+      height /= 2;
+      for (int i = 0; i <= 360; i++)
+      {
+        pos.Add(xc + (float)Math.Cos(i * Math.PI / 180) * width);
+        pos.Add(yc + (float)Math.Sin(i * Math.PI / 180) * height);
+        pos.Add(xc + (float)Math.Cos(i * Math.PI / 180) * (width - pen.Width));
+        pos.Add(yc + (float)Math.Sin(i * Math.PI / 180) * (height - pen.Width));
+      }
+      _simpleShader.Uniform3("fragmentColor", new Vector3(pen.Color.R * ColorFloat, pen.Color.G * ColorFloat, pen.Color.B * ColorFloat));
+      _simpleShader.ChangeData(VBOdata.Positions, pos.ToArray());
+      _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      _simpleShader.DrawArrays(BeginMode.TriangleStrip, 0, pos.Count / 2);
     }
 
     /// <summary>
@@ -306,7 +313,6 @@ namespace GraphicLib.OpenGl
     /// </summary>
     public void Render()
     {
-
     }
 
     /// <summary>
@@ -324,9 +330,10 @@ namespace GraphicLib.OpenGl
   }
 
 
+  //TODO remove this class to another file
   internal sealed class Texture : IDisposable
   {
-    private int GlHandle { get; set; }
+    internal int GlHandle { get; private set; }
     private int Width { get; set; }
     private int Height { get; set; }
 
@@ -342,8 +349,8 @@ namespace GraphicLib.OpenGl
       GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmapData.Width, bitmapData.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, bitmapData.Scan0);
       bitmap.UnlockBits(bitmapData);
 
-      GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-      GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+      GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+      GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
     }
 
     public void Bind()

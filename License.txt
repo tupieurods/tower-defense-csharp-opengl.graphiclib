@@ -1,0 +1,4 @@
+﻿ Copyright © Anatoly Manzhugin 2012  All rights reserved.
+
+This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+More information about license:http://creativecommons.org/licenses/by-nc-sa/3.0/

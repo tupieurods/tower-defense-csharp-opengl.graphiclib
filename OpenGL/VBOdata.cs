@@ -4,6 +4,7 @@ namespace GraphicLib.OpenGl
   {
     Positions,
     Index,
-    Color
+    Color,
+    TextureCoord
   };
 }
