@@ -1,6 +1,6 @@
 namespace GraphicLib.OpenGl
 {
-  internal enum VBOdata
+  public enum VBOdata
   {
     Positions,
     Index,

@@ -2,7 +2,7 @@
 
 namespace GraphicLib.OpenGL
 {
-  static class Matrix
+  public static class Matrix
   {
     /// <summary>
     /// Sets orthogonal projection matrix
@@ -14,7 +14,7 @@ namespace GraphicLib.OpenGL
     /// <param name="top">The top.</param>
     /// <param name="zNear">The z near.</param>
     /// <param name="zFar">The z far.</param>
-    static internal void Matrix4Ortho(IList<float> projectionMatrix, float left, float right, float bottom, float top, float zNear, float zFar)
+    static public void Matrix4Ortho(IList<float> projectionMatrix, float left, float right, float bottom, float top, float zNear, float zFar)
     {
       float tx = -(right + left) / (right - left),
             ty = -(top + bottom) / (top - bottom),

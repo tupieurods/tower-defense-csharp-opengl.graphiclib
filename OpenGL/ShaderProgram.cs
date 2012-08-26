@@ -5,7 +5,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace GraphicLib.OpenGl
 {
-  internal class ShaderProgram : IDisposable
+  public class ShaderProgram : IDisposable
   {
     /// <summary>
     /// Shader program id on GPU
@@ -23,7 +23,7 @@ namespace GraphicLib.OpenGl
     /// <param name="vertexShaderSource">The vertex shader source.</param>
     /// <param name="fragmentShaderSource">The fragment shader source.</param>
     /// <param name="vao">The vao.</param>
-    internal ShaderProgram(byte[] vertexShaderSource, byte[] fragmentShaderSource, VAO vao = null)
+    public ShaderProgram(byte[] vertexShaderSource, byte[] fragmentShaderSource, VAO vao = null)
     {
       _vao = vao;
       //Вершинный шейдер
@@ -55,7 +55,7 @@ namespace GraphicLib.OpenGl
     /// Attaches the VAO.
     /// </summary>
     /// <param name="vao">The vao.</param>
-    internal void AttachVAO(VAO vao)
+    public void AttachVAO(VAO vao)
     {
       _vao = vao;
     }
@@ -70,7 +70,7 @@ namespace GraphicLib.OpenGl
     /// <param name="normalized">if set to <c>true</c> [normalized].</param>
     /// <param name="stride">The stride.</param>
     /// <param name="offset">The offset.</param>
-    internal void ChangeAttribute(VBOdata VBOtype, string attributeName, int size, VertexAttribPointerType type, bool normalized, int stride, int offset)
+    public void ChangeAttribute(VBOdata VBOtype, string attributeName, int size, VertexAttribPointerType type, bool normalized, int stride, int offset)
     {
       UseProgram();
       _vao.BindWithVBO(VBOtype);
@@ -86,16 +86,24 @@ namespace GraphicLib.OpenGl
       StopUseProgram();
     }
 
+    public void Resize(VBOdata VBOtype, int size)
+    {
+      UseProgram();
+      _vao.Resize(VBOtype, size);
+      StopUseProgram();
+    }
+
     /// <summary>
     /// Changes the data in VAO
     /// </summary>
     /// <param name="VBOtype">The VBO type.</param>
     /// <param name="buffer">The buffer.</param>
+    /// <param name="offset">Buffer offset </param>
     /// <returns></returns>
-    internal bool ChangeData(VBOdata VBOtype, float[] buffer)
+    public bool ChangeData(VBOdata VBOtype, float[] buffer, int offset = 0)
     {
       UseProgram();
-      bool result = _vao.ChangeData(VBOtype, buffer);
+      bool result = _vao.ChangeData(VBOtype, buffer, offset);
       StopUseProgram();
       return result;
     }
@@ -105,11 +113,12 @@ namespace GraphicLib.OpenGl
     /// </summary>
     /// <param name="VBOtype">The VBO type.</param>
     /// <param name="buffer">The buffer.</param>
+    /// <param name="offset">Buffer offset </param>
     /// <returns></returns>
-    internal bool ChangeData(VBOdata VBOtype, uint[] buffer)
+    public bool ChangeData(VBOdata VBOtype, uint[] buffer, int offset = 0)
     {
       UseProgram();
-      bool result = _vao.ChangeData(VBOtype, buffer);
+      bool result = _vao.ChangeData(VBOtype, buffer, offset);
       StopUseProgram();
       return result;
     }
@@ -117,7 +126,7 @@ namespace GraphicLib.OpenGl
     /// <summary>
     /// Sets this shader program as active on GPU
     /// </summary>
-    private void UseProgram()
+    public void UseProgram()
     {
       GL.UseProgram(_shaderProgram);
     }
@@ -125,7 +134,7 @@ namespace GraphicLib.OpenGl
     /// <summary>
     /// Sets this shader program as inactive on GPU
     /// </summary>
-    private static void StopUseProgram()
+    public static void StopUseProgram()
     {
       GL.UseProgram(0);
     }
@@ -136,7 +145,7 @@ namespace GraphicLib.OpenGl
     /// <param name="matrixName">Name of the matrix.</param>
     /// <param name="matrix">The matrix.</param>
     /// <param name="transpose">if set to <c>true</c> [transpose].</param>
-    internal void UniformMatrix4(string matrixName, float[] matrix, bool transpose)
+    public void UniformMatrix4(string matrixName, float[] matrix, bool transpose)
     {
       UseProgram();
       int projectionMatrixLocation = GL.GetUniformLocation(_shaderProgram, matrixName);
@@ -147,7 +156,8 @@ namespace GraphicLib.OpenGl
       StopUseProgram();
     }
 
-    internal void Uniform1(string parametrName, float value)
+    #region Uniform1234
+    public void Uniform1(string parametrName, float value)
     {
       UseProgram();
       int parametrLocation = GL.GetUniformLocation(_shaderProgram, parametrName);
@@ -160,7 +170,20 @@ namespace GraphicLib.OpenGl
       StopUseProgram();
     }
 
-    internal void Uniform3(string parametrName, Vector3 value)
+    public void Uniform2(string parametrName, Vector2 value)
+    {
+      UseProgram();
+      int parametrLocation = GL.GetUniformLocation(_shaderProgram, parametrName);
+      if (parametrLocation != -1)
+      {
+        GL.Uniform2(parametrLocation, value);
+      }
+      else
+        throw new ShaderParametrNotFoundException();
+      StopUseProgram();
+    }
+
+    public void Uniform3(string parametrName, Vector3 value)
     {
       UseProgram();
       int parametrLocation = GL.GetUniformLocation(_shaderProgram, parametrName);
@@ -173,13 +196,27 @@ namespace GraphicLib.OpenGl
       StopUseProgram();
     }
 
+    public void Uniform4(string parametrName, Vector4 value)
+    {
+      UseProgram();
+      int parametrLocation = GL.GetUniformLocation(_shaderProgram, parametrName);
+      if (parametrLocation != -1)
+      {
+        GL.Uniform4(parametrLocation, value);
+      }
+      else
+        throw new ShaderParametrNotFoundException();
+      StopUseProgram();
+    }
+    #endregion
+
     /// <summary>
     /// Draws the arrays.
     /// </summary>
     /// <param name="mode">The mode.</param>
     /// <param name="first">The first.</param>
     /// <param name="count">The count.</param>
-    internal void DrawArrays(BeginMode mode, int first, int count)
+    public void DrawArrays(BeginMode mode, int first, int count)
     {
       UseProgram();
       _vao.Bind();
@@ -194,7 +231,7 @@ namespace GraphicLib.OpenGl
     /// <param name="mode">The mode.</param>
     /// <param name="count">The count.</param>
     /// <param name="type">The type.</param>
-    internal void DrawElements(BeginMode mode, int count, DrawElementsType type = DrawElementsType.UnsignedInt)
+    public void DrawElements(BeginMode mode, int count, DrawElementsType type = DrawElementsType.UnsignedInt)
     {
       if (!_vao.VBOexists(VBOdata.Index))
         throw new VBONotFoundException("Index VBO not found");

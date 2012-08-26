@@ -4,7 +4,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace GraphicLib.OpenGl
 {
-  internal class VAO : IDisposable
+  public class VAO : IDisposable
   {
     /// <summary>
     /// VAO index on GPU
@@ -22,7 +22,7 @@ namespace GraphicLib.OpenGl
     /// <param name="VBOtypes">The VBO data types.</param>
     /// <param name="VBObufferUsageHint">The VBO buffer usage hint.</param>
     /// <param name="VBOsize">The VBO osize.</param>
-    internal VAO(VBOdata[] VBOtypes = null, BufferUsageHint VBObufferUsageHint = BufferUsageHint.DynamicDraw, int VBOsize = 0)
+    public VAO(VBOdata[] VBOtypes = null, BufferUsageHint VBObufferUsageHint = BufferUsageHint.StreamDraw, int VBOsize = 0)
     {
       GL.GenVertexArrays(1, out _vao);
       GL.BindVertexArray(_vao);
@@ -36,19 +36,29 @@ namespace GraphicLib.OpenGl
       GL.BindVertexArray(0);
     }
 
+    internal void Resize(VBOdata VBOtype, int size)
+    {
+      if (!VBOexists(VBOtype))
+        VBOobjects.Add(VBOtype, new VBO(VBOtype));
+      Bind();
+      VBOobjects[VBOtype].Resize(size);
+      UnBind();
+    }
+
     #region VAO data changers
     /// <summary>
     /// Changes stored data
     /// </summary>
     /// <param name="VBOtype">The VBO type in VAO.</param>
     /// <param name="dataBuffer">The vertex buffer.</param>
+    /// <param name="offset">Buffer offset </param>
     /// <returns>True if data changes successful</returns>
-    internal bool ChangeData(VBOdata VBOtype, float[] dataBuffer)
+    internal bool ChangeData(VBOdata VBOtype, float[] dataBuffer, int offset = 0)
     {
       if (!VBOexists(VBOtype))
         VBOobjects.Add(VBOtype, new VBO(VBOtype));
       Bind();
-      bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer);
+      bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
       return result;
     }
@@ -58,13 +68,14 @@ namespace GraphicLib.OpenGl
     /// </summary>
     /// <param name="VBOtype">The VBO type in VAO.</param>
     /// <param name="dataBuffer">The vertex buffer.</param>
+    /// <param name="offset">Buffer offset </param>
     /// <returns>True if data changes successful</returns>
-    internal bool ChangeData(VBOdata VBOtype, uint[] dataBuffer)
+    internal bool ChangeData(VBOdata VBOtype, uint[] dataBuffer, int offset = 0)
     {
       if (!VBOexists(VBOtype))
         VBOobjects.Add(VBOtype, new VBO(VBOtype));
       Bind();
-      bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer);
+      bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
       return result;
     }

@@ -52,8 +52,10 @@ namespace GraphicLib.OpenGl
     /// Resizes vbo.
     /// </summary>
     /// <param name="size">The new size.</param>
-    private void Resize(int size)
+    internal void Resize(int size)
     {
+      if (_currentSize >= size)
+        return;
       GL.DeleteBuffers(1, ref _vbo);
       GL.GenBuffers(1, out _vbo);
       Bind();
@@ -63,18 +65,20 @@ namespace GraphicLib.OpenGl
     }
 
     #region VBO Data changers
+
     /// <summary>
     /// Changes the data in VBO.
     /// </summary>
     /// <param name="dataBuffer">The data buffer.</param>
+    /// <param name="offset">Buffer offset </param>
     /// <returns>true if successful,false if error</returns>
-    internal bool ChangeDataInVBO(float[] dataBuffer)
+    internal bool ChangeDataInVBO(float[] dataBuffer, int offset = 0)
     {
       int size = dataBuffer.Length * sizeof(float);
       if (size > _currentSize)
         Resize(size);
       Bind();
-      GL.BufferSubData(_bufferTarget, new IntPtr(0), new IntPtr(size), dataBuffer);
+      GL.BufferSubData(_bufferTarget, new IntPtr(offset), new IntPtr(size), dataBuffer);
       UnBind();
       var errorCode = GL.GetError();
       return errorCode == ErrorCode.NoError;
@@ -84,14 +88,15 @@ namespace GraphicLib.OpenGl
     /// Changes the data in VBO.
     /// </summary>
     /// <param name="dataBuffer">The data buffer.</param>
+    /// <param name="offset">Buffer offset </param>
     /// <returns>true if successful,false if error</returns>
-    internal bool ChangeDataInVBO(uint[] dataBuffer)
+    internal bool ChangeDataInVBO(uint[] dataBuffer, int offset = 0)
     {
       int size = dataBuffer.Length * sizeof(uint);
       if (size > _currentSize)
         Resize(size * 2);
       Bind();
-      GL.BufferSubData(_bufferTarget, new IntPtr(0), new IntPtr(dataBuffer.Length * sizeof(uint)), dataBuffer);
+      GL.BufferSubData(_bufferTarget, new IntPtr(offset), new IntPtr(dataBuffer.Length * sizeof(uint)), dataBuffer);
       UnBind();
       var errorCode = GL.GetError();
       return errorCode == ErrorCode.NoError;
