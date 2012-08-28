@@ -474,6 +474,7 @@ namespace GraphicLib.OpenGl
     /// </summary>
     public void Render()
     {
+      //GL.Finish();
       GL.Enable(EnableCap.ScissorTest);
       GL.Enable(EnableCap.Texture2D);
       GL.Enable(EnableCap.Blend);
@@ -574,7 +575,7 @@ namespace GraphicLib.OpenGl
       GL.Disable(EnableCap.Texture2D);
       GL.Disable(EnableCap.ScissorTest);
 
-      GL.Flush();
+      //GL.Finish();
     }
 
     /// <summary>

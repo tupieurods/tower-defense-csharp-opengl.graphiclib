@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using OpenTK.Graphics.OpenGL;
 
 namespace GraphicLib.OpenGl
@@ -77,9 +76,7 @@ namespace GraphicLib.OpenGl
       int size = dataBuffer.Length * sizeof(float);
       if (size > _currentSize)
         Resize(size);
-      Bind();
-      GL.BufferSubData(_bufferTarget, new IntPtr(offset), new IntPtr(size), dataBuffer);
-      UnBind();
+      GL.Ext.NamedBufferSubData(_vbo, new IntPtr(offset), new IntPtr(size), dataBuffer);
       var errorCode = GL.GetError();
       return errorCode == ErrorCode.NoError;
     }
@@ -94,10 +91,8 @@ namespace GraphicLib.OpenGl
     {
       int size = dataBuffer.Length * sizeof(uint);
       if (size > _currentSize)
-        Resize(size * 2);
-      Bind();
-      GL.BufferSubData(_bufferTarget, new IntPtr(offset), new IntPtr(dataBuffer.Length * sizeof(uint)), dataBuffer);
-      UnBind();
+        Resize(size);
+      GL.Ext.NamedBufferSubData(_vbo, new IntPtr(offset), new IntPtr(size), dataBuffer);
       var errorCode = GL.GetError();
       return errorCode == ErrorCode.NoError;
     }

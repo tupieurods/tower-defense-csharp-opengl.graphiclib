@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -16,6 +17,10 @@ namespace GraphicLib.OpenGl
     /// VAO, which associated with shader program
     /// </summary>
     private VAO _vao;
+
+    private readonly Dictionary<string, int> _attribLocations = new Dictionary<string, int>();
+
+    private readonly Dictionary<string, int> _uniformLocations = new Dictionary<string, int>();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ShaderProgram"/> class.
@@ -72,9 +77,12 @@ namespace GraphicLib.OpenGl
     /// <param name="offset">The offset.</param>
     public void ChangeAttribute(VBOdata VBOtype, string attributeName, int size, VertexAttribPointerType type, bool normalized, int stride, int offset)
     {
-      UseProgram();
+      //UseProgram();
       _vao.BindWithVBO(VBOtype);
-      int attributeLocation = GL.GetAttribLocation(_shaderProgram, attributeName);
+
+      if (!_attribLocations.ContainsKey(attributeName))
+        _attribLocations.Add(attributeName, GL.GetAttribLocation(_shaderProgram, attributeName));
+      int attributeLocation = _attribLocations[attributeName];
       if (attributeLocation != -1)
       {
         GL.VertexAttribPointer(attributeLocation, size, type, normalized, stride, offset);
@@ -83,14 +91,14 @@ namespace GraphicLib.OpenGl
       else
         throw new ShaderParametrNotFoundException();
       _vao.UnBindWithVBO(VBOtype);
-      StopUseProgram();
+      // StopUseProgram();
     }
 
     public void Resize(VBOdata VBOtype, int size)
     {
-      UseProgram();
+      //UseProgram();
       _vao.Resize(VBOtype, size);
-      StopUseProgram();
+      //StopUseProgram();
     }
 
     /// <summary>
@@ -102,9 +110,9 @@ namespace GraphicLib.OpenGl
     /// <returns></returns>
     public bool ChangeData(VBOdata VBOtype, float[] buffer, int offset = 0)
     {
-      UseProgram();
+      //UseProgram();
       bool result = _vao.ChangeData(VBOtype, buffer, offset);
-      StopUseProgram();
+      //StopUseProgram();
       return result;
     }
 
@@ -117,9 +125,9 @@ namespace GraphicLib.OpenGl
     /// <returns></returns>
     public bool ChangeData(VBOdata VBOtype, uint[] buffer, int offset = 0)
     {
-      UseProgram();
+      //UseProgram();
       bool result = _vao.ChangeData(VBOtype, buffer, offset);
-      StopUseProgram();
+      //StopUseProgram();
       return result;
     }
 
@@ -157,55 +165,43 @@ namespace GraphicLib.OpenGl
     }
 
     #region Uniform1234
+
+    private int GetUniformLocation(string parametrName)
+    {
+      if (!_uniformLocations.ContainsKey(parametrName))
+      {
+        _uniformLocations.Add(parametrName, GL.GetUniformLocation(_shaderProgram, parametrName));
+        if (_uniformLocations[parametrName] == -1)
+          throw new ShaderParametrNotFoundException();
+      }
+      return _uniformLocations[parametrName];
+    }
+
     public void Uniform1(string parametrName, float value)
     {
       UseProgram();
-      int parametrLocation = GL.GetUniformLocation(_shaderProgram, parametrName);
-      if (parametrLocation != -1)
-      {
-        GL.Uniform1(parametrLocation, value);
-      }
-      else
-        throw new ShaderParametrNotFoundException();
+      GL.Uniform1(GetUniformLocation(parametrName), value);
       StopUseProgram();
     }
 
     public void Uniform2(string parametrName, Vector2 value)
     {
       UseProgram();
-      int parametrLocation = GL.GetUniformLocation(_shaderProgram, parametrName);
-      if (parametrLocation != -1)
-      {
-        GL.Uniform2(parametrLocation, value);
-      }
-      else
-        throw new ShaderParametrNotFoundException();
+      GL.Uniform2(GetUniformLocation(parametrName), value);
       StopUseProgram();
     }
 
     public void Uniform3(string parametrName, Vector3 value)
     {
       UseProgram();
-      int parametrLocation = GL.GetUniformLocation(_shaderProgram, parametrName);
-      if (parametrLocation != -1)
-      {
-        GL.Uniform3(parametrLocation, value);
-      }
-      else
-        throw new ShaderParametrNotFoundException();
+      GL.Uniform3(GetUniformLocation(parametrName), value);
       StopUseProgram();
     }
 
     public void Uniform4(string parametrName, Vector4 value)
     {
       UseProgram();
-      int parametrLocation = GL.GetUniformLocation(_shaderProgram, parametrName);
-      if (parametrLocation != -1)
-      {
-        GL.Uniform4(parametrLocation, value);
-      }
-      else
-        throw new ShaderParametrNotFoundException();
+      GL.Uniform4(GetUniformLocation(parametrName), value);
       StopUseProgram();
     }
     #endregion
