@@ -96,6 +96,22 @@ namespace GraphicLib.OpenGl
       var errorCode = GL.GetError();
       return errorCode == ErrorCode.NoError;
     }
+
+    /// <summary>
+    /// Changes the data in VBO.
+    /// </summary>
+    /// <param name="dataBuffer">The data buffer.</param>
+    /// <param name="offset">Buffer offset </param>
+    /// <returns>true if successful,false if error</returns>
+    internal bool ChangeDataInVBO(int[] dataBuffer, int offset = 0)
+    {
+      int size = dataBuffer.Length * sizeof(uint);
+      if (size > _currentSize)
+        Resize(size);
+      GL.Ext.NamedBufferSubData(_vbo, new IntPtr(offset), new IntPtr(size), dataBuffer);
+      var errorCode = GL.GetError();
+      return errorCode == ErrorCode.NoError;
+    }
     #endregion
 
     #region VBO binders

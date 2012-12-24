@@ -18,8 +18,14 @@ namespace GraphicLib.OpenGl
     /// </summary>
     private VAO _vao;
 
+    /// <summary>
+    /// Shader attributes locations
+    /// </summary>
     private readonly Dictionary<string, int> _attribLocations = new Dictionary<string, int>();
 
+    /// <summary>
+    /// Shader unifrom vars locations
+    /// </summary>
     private readonly Dictionary<string, int> _uniformLocations = new Dictionary<string, int>();
 
     /// <summary>
@@ -35,25 +41,25 @@ namespace GraphicLib.OpenGl
       int vertexShader = GL.CreateShader(ShaderType.VertexShader);
       string shaderStr = vertexShaderSource.Aggregate("", (current, t) => current + Convert.ToChar(t));
       GL.ShaderSource(vertexShader, shaderStr);
-      //System.Windows.Forms.MessageBox.Show(shaderStr);
       //Фрагментный шейдер
       int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
       shaderStr = fragmentShaderSource.Aggregate("", (current, t) => current + Convert.ToChar(t));
       GL.ShaderSource(fragmentShader, shaderStr);
       //Компиляция
       GL.CompileShader(vertexShader);
-      /*int status;
+      int status;
       GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out status);
-      System.Windows.Forms.MessageBox.Show("Vertex: " + status.ToString());*/
+      if (status != 1)
+        throw new ArgumentException("vertexShaderSource");
       GL.CompileShader(fragmentShader);
-      /*GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out status);
-      System.Windows.Forms.MessageBox.Show("Fragment: " + status.ToString());*/
+      GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out status);
+      if (status != 1)
+        throw new ArgumentException("fragmentShaderSource");
       //Сборка шейдерной программы
       _shaderProgram = GL.CreateProgram();
       GL.AttachShader(_shaderProgram, vertexShader);
       GL.AttachShader(_shaderProgram, fragmentShader);
       GL.LinkProgram(_shaderProgram);
-      //System.Windows.Forms.MessageBox.Show(GL.GetError().ToString());
     }
 
     /// <summary>
@@ -77,7 +83,6 @@ namespace GraphicLib.OpenGl
     /// <param name="offset">The offset.</param>
     public void ChangeAttribute(VBOdata VBOtype, string attributeName, int size, VertexAttribPointerType type, bool normalized, int stride, int offset)
     {
-      //UseProgram();
       _vao.BindWithVBO(VBOtype);
 
       if (!_attribLocations.ContainsKey(attributeName))
@@ -91,14 +96,11 @@ namespace GraphicLib.OpenGl
       else
         throw new ShaderParametrNotFoundException();
       _vao.UnBindWithVBO(VBOtype);
-      // StopUseProgram();
     }
 
     public void Resize(VBOdata VBOtype, int size)
     {
-      //UseProgram();
       _vao.Resize(VBOtype, size);
-      //StopUseProgram();
     }
 
     /// <summary>
@@ -110,9 +112,20 @@ namespace GraphicLib.OpenGl
     /// <returns></returns>
     public bool ChangeData(VBOdata VBOtype, float[] buffer, int offset = 0)
     {
-      //UseProgram();
       bool result = _vao.ChangeData(VBOtype, buffer, offset);
-      //StopUseProgram();
+      return result;
+    }
+
+    /// <summary>
+    /// Changes the data in VAO
+    /// </summary>
+    /// <param name="VBOtype">The VBO type.</param>
+    /// <param name="buffer">The buffer.</param>
+    /// <param name="offset">Buffer offset </param>
+    /// <returns></returns>
+    public bool ChangeData(VBOdata VBOtype, int[] buffer, int offset = 0)
+    {
+      bool result = _vao.ChangeData(VBOtype, buffer, offset);
       return result;
     }
 
@@ -125,9 +138,7 @@ namespace GraphicLib.OpenGl
     /// <returns></returns>
     public bool ChangeData(VBOdata VBOtype, uint[] buffer, int offset = 0)
     {
-      //UseProgram();
       bool result = _vao.ChangeData(VBOtype, buffer, offset);
-      //StopUseProgram();
       return result;
     }
 
@@ -159,6 +170,17 @@ namespace GraphicLib.OpenGl
       int projectionMatrixLocation = GL.GetUniformLocation(_shaderProgram, matrixName);
       if (projectionMatrixLocation != -1)
         GL.UniformMatrix4(projectionMatrixLocation, 1, transpose, matrix);
+      else
+        throw new ShaderParametrNotFoundException();
+      StopUseProgram();
+    }
+
+    public void UniformMatrix4(string matrixName, Matrix4 matrix, bool transpose)
+    {
+      UseProgram();
+      int projectionMatrixLocation = GL.GetUniformLocation(_shaderProgram, matrixName);
+      if (projectionMatrixLocation != -1)
+        GL.UniformMatrix4(projectionMatrixLocation, transpose, ref matrix);
       else
         throw new ShaderParametrNotFoundException();
       StopUseProgram();

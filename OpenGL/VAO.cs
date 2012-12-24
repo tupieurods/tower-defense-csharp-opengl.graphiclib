@@ -79,6 +79,23 @@ namespace GraphicLib.OpenGl
       UnBind();
       return result;
     }
+
+    /// <summary>
+    /// Changes stored data
+    /// </summary>
+    /// <param name="VBOtype">The VBO type in VAO.</param>
+    /// <param name="dataBuffer">The vertex buffer.</param>
+    /// <param name="offset">Buffer offset </param>
+    /// <returns>True if data changes successful</returns>
+    internal bool ChangeData(VBOdata VBOtype, int[] dataBuffer, int offset = 0)
+    {
+      if (!VBOexists(VBOtype))
+        VBOobjects.Add(VBOtype, new VBO(VBOtype));
+      Bind();
+      bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
+      UnBind();
+      return result;
+    }
     #endregion
 
     /// <summary>

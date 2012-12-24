@@ -13,55 +13,117 @@ using EnableCap = OpenTK.Graphics.OpenGL.EnableCap;
 
 namespace GraphicLib.OpenGl
 {
+  /// <summary>
+  /// 
+  /// </summary>
   public class OpenGLGraphic : IGraphic
   {
 
+    /*List<float> pos1 = new List<float>();
+    List<float> pos2 = new List<float>();
+    List<float> pos3 = new List<float>();
+    List<float> pos4 = new List<float>();*/
+
+    /// <summary>
+    /// Texture cache
+    /// </summary>
     private static readonly Dictionary<int, Texture> Cache = new Dictionary<int, Texture>();
 
+    /// <summary>
+    /// Size of rendering window
+    /// </summary>
     private Size _windowSize;
 
+    /// <summary>
+    /// Simple shader, without effects
+    /// </summary>
     private readonly ShaderProgram _simpleShader;
 
-    private readonly ShaderProgram _ellipseShader;
+    //private readonly ShaderProgram _ellipseShader;
 
+    private VAO _simplePrimitivesVAO = new VAO();
+
+    private VAO _ellipseVAO = new VAO();
+
+    /// <summary>
+    /// Texture shader, without effects
+    /// </summary>
     private readonly ShaderProgram _textureShader;
 
+    /// <summary>
+    /// constant for color transfering
+    /// </summary>
     private const float ColorFloat = 1.0f / 255.0f;
 
+    #region Conveer data
+    /// <summary>
+    /// Rendering conveer action
+    /// </summary>
     private List<DrawActions> _actions = new List<DrawActions>();
+
+    /// <summary>
+    /// Vertex positions for simple shader
+    /// </summary>
     private List<float> _vertexCoords = new List<float>();
 
+    /// <summary>
+    /// Color for fill rectangle method
+    /// </summary>
     private List<Vector4> _fillRectangleColors = new List<Vector4>();
 
+    /// <summary>
+    /// Texture positions
+    /// </summary>
     private List<float> _drawImageCoords = new List<float>();
+    /// <summary>
+    /// InTexture positions
+    /// </summary>
     private List<float> _drawImageTextureCoords = new List<float>();
+    /// <summary>
+    /// Textures for draw image method
+    /// </summary>
     private List<Texture> _drawImageTextures = new List<Texture>();
 
+    /// <summary>
+    /// Pens for draw line method
+    /// </summary>
     private List<Pen> _drawLinesPens = new List<Pen>();
 
+    /// <summary>
+    /// Data for FillEllipseReal method
+    /// </summary>
     private List<FillEllipseData> _fillEllipseData = new List<FillEllipseData>();
 
+    /// <summary>
+    /// Data for DrawEllipseReal method
+    /// </summary>
     private List<DrawEllipseData> _drawEllipseData = new List<DrawEllipseData>();
 
+    /// <summary>
+    /// Clipping area rectangles
+    /// </summary>
     private List<Rectangle> _clipAreaRects = new List<Rectangle>();
+    #endregion
 
     public OpenGLGraphic(Size windowSize)
     {
-      _windowSize = windowSize;
-      _simpleShader = new ShaderProgram(Properties.Resources.SimpleVertexShader, Properties.Resources.SimpleFragmentShader, new VAO());
+      //_windowSize = windowSize;
+      //_simpleShader = new ShaderProgram(Properties.Resources.SimpleVertexShader, Properties.Resources.SimpleFragmentShader, new VAO());
+      _simpleShader = new ShaderProgram(Properties.Resources.SimpleVertexShader, Properties.Resources.SimpleFragmentShader, _simplePrimitivesVAO);
       _textureShader = new ShaderProgram(Properties.Resources.SimpleTextureVertex, Properties.Resources.SimpleTextureFragment, new VAO());
-      _ellipseShader = new ShaderProgram(Properties.Resources.SimpleVertexShader, Properties.Resources.SimpleFragmentShader, new VAO());
-      float[] projectionMatrix = new float[16];
+      //_ellipseShader = new ShaderProgram(Properties.Resources.SimpleVertexShader, Properties.Resources.SimpleFragmentShader, new VAO());
+      Resize(windowSize.Width, windowSize.Height, 1.0f, null);
+      /*float[] projectionMatrix = new float[16];
       Matrix.Matrix4Ortho(projectionMatrix, 0, _windowSize.Width - 1, _windowSize.Height - 1, 0, -1, 1);
       _simpleShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
-      _ellipseShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
-      _textureShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
+      //_ellipseShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
+      _textureShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);*/
     }
 
     #region private section
 
     /// <summary>
-    /// Draws Texture
+    /// Draws Texture(add draw image action to conveer)
     /// </summary>
     /// <param name="image">The image.</param>
     /// <param name="x">The x.</param>
@@ -85,6 +147,11 @@ namespace GraphicLib.OpenGl
       _actions.Add(DrawActions.DrawImage);
     }
 
+    /// <summary>
+    /// Draw line in conveer
+    /// </summary>
+    /// <param name="index">Line index</param>
+    /// <param name="offset">Coords VBO offset</param>
     private void DrawLineReal(int index, int offset)
     {
       _simpleShader.Uniform4("fragmentColor",
@@ -96,12 +163,22 @@ namespace GraphicLib.OpenGl
       _simpleShader.DrawArrays(BeginMode.Lines, offset, 2);
     }
 
+    /// <summary>
+    /// Fills the rectangle in conveer
+    /// </summary>
+    /// <param name="index">Filled rectangle index</param>
+    /// <param name="offset">Coords VBO offset</param>
     private void FillRectangleReal(int index, int offset)
     {
       _simpleShader.Uniform4("fragmentColor", _fillRectangleColors[index]);
       _simpleShader.DrawArrays(BeginMode.Polygon, offset, 4);
     }
 
+    /// <summary>
+    /// Draws the image in conveer
+    /// </summary>
+    /// <param name="index">Image data index</param>
+    /// <param name="offset">Coords VBO offset</param>
     private void DrawImageReal(int index, int offset)
     {
       _drawImageTextures[index].Bind();
@@ -111,6 +188,10 @@ namespace GraphicLib.OpenGl
         _drawImageTextures[index].Dispose();
     }
 
+    /// <summary>
+    /// Fills the ellipse in conveer
+    /// </summary>
+    /// <param name="index">ellipse data index</param>
     private void FillEllipseReal(int index)
     {
       List<float> pos = new List<float>();
@@ -123,16 +204,32 @@ namespace GraphicLib.OpenGl
         pos.Add(xc + (float)Math.Cos(i * Math.PI / 180) * a);
         pos.Add(yc + (float)Math.Sin(i * Math.PI / 180) * b);
       }
-      _ellipseShader.Uniform4("fragmentColor",
+      _simpleShader.AttachVAO(_ellipseVAO);
+      _simpleShader.Uniform4("fragmentColor",
+        new Vector4(_fillEllipseData[index].EllipseBrush.Color.R * ColorFloat, _fillEllipseData[index].EllipseBrush.Color.G * ColorFloat, _fillEllipseData[index].EllipseBrush.Color.B * ColorFloat, _fillEllipseData[index].EllipseBrush.Color.A * ColorFloat));
+      _simpleShader.ChangeData(VBOdata.Positions, pos.ToArray());
+      _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      _simpleShader.DrawArrays(BeginMode.Polygon, 0, pos.Count / 2);
+
+      _simpleShader.AttachVAO(_simplePrimitivesVAO);
+      _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      /*_ellipseShader.Uniform4("fragmentColor",
         new Vector4(_fillEllipseData[index].EllipseBrush.Color.R * ColorFloat, _fillEllipseData[index].EllipseBrush.Color.G * ColorFloat, _fillEllipseData[index].EllipseBrush.Color.B * ColorFloat, _fillEllipseData[index].EllipseBrush.Color.A * ColorFloat));
       _ellipseShader.ChangeData(VBOdata.Positions, pos.ToArray());
       _ellipseShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
-      _ellipseShader.DrawArrays(BeginMode.Polygon, 0, pos.Count / 2);
+      _ellipseShader.DrawArrays(BeginMode.Polygon, 0, pos.Count / 2);*/
     }
 
+    /// <summary>
+    /// Draws the ellipse in conveer
+    /// </summary>
+    /// <param name="index">ellipse data index</param>
     private void DrawEllipseReal(int index)
     {
-      //It's not looks grate, but it fix memory leak
+      /*pos1.Clear();
+      pos2.Clear();
+      pos3.Clear();
+      pos4.Clear();*/
       List<float> pos1 = new List<float>();
       List<float> pos2 = new List<float>();
       List<float> pos3 = new List<float>();
@@ -169,81 +266,98 @@ namespace GraphicLib.OpenGl
       #endregion
 
       #region Ellipse coords calculation
-      while (xMax <= 1)
+
+
+      float x = xMax;
+      float y = yMax;
+      float F = bMax * (2 * x * x + 2 * x + 1) + aMax - 2 * rMax;
+      float delta_Fs = aMax * 7;
+      float delta_Fd = bMax * (6 * x + 7);
+
+      float dFs = aMax * 6;
+      float dFd = bMax * 6;
+
+      float x2 = x * x;
+      float y2 = y * y;
+
+      //float x22 = x2 + x2 + 2 * x + 1;
+      //float y22 = y2 + y2 + 2 * y + 1;
+
+      //float x22_bMax = (x2 + x2 + 2 * x + 1) * bMax;
+      //float y22_aMax = (y2 + y2 + 2 * y + 1) * aMax;
+
+      float x22_bMax_m_rMax = (x2 + x2 + 2 * x + 1) * bMax - rMax;
+      float m_y22_aMax_m_rMax = -((y2 + y2 + 2 * y + 1) * aMax - rMax);
+
+      while (x < 1)
       {
         //Третья четверть
-        pos3.Add(xMax + xc);
-        pos3.Add(yMax + yc);
+        pos3.Add(x + xc);
+        pos3.Add(y + yc);
 
         //Четвёртая четверть
-        pos4.Add(yc + yMax);
-        pos4.Add(xc - xMax);
+        pos4.Add(yc + y);
+        pos4.Add(xc - x);
 
         //Вторая четверть
-        pos2.Add(yc - yMax);
-        pos2.Add(xMax + xc);
+        pos2.Add(yc - y);
+        pos2.Add(x + xc);
 
         //Первая четверть
-        pos1.Add(xc - xMax);
-        pos1.Add(yc - yMax);
+        pos1.Add(xc - x);
+        pos1.Add(yc - y);
 
-        #region Big ellipse
-        float xMaxD = xMax + 1;
-        float yMaxD = yMax;
-        float xMaxS = xMax;
-        float yMaxS = yMax + 1;
-        if (bMax * (xMaxS * xMaxS + xMaxD * xMaxD) + aMax * (yMaxS * yMaxS + yMaxD * yMaxD) - 2 * rMax > 0)
+        /*if (F > 0)
         {
-          xMax = xMaxD;
-          yMax = yMaxD;
+          // d: горизонтальное смещение
+          F += delta_Fd;
+          x++;
+          delta_Fs += 0;
+          delta_Fd += dFd;
         }
         else
         {
-          xMax = xMaxS;
-          yMax = yMaxS;
+          // s: Вертикальное смещение
+          F += delta_Fs;
+          y++;
+          delta_Fs += dFs;
+          delta_Fd += 0;
+        }*/
+
+        #region Big ellipse
+        if (x22_bMax_m_rMax > m_y22_aMax_m_rMax)
+        {
+          x += 1;
+          x22_bMax_m_rMax += 4 * bMax * (x);
+        }
+        else
+        {
+          y += 1;
+          m_y22_aMax_m_rMax -= 4 * aMax * (y);
         }
         #endregion
 
-        if (Math.Abs(penW - 0) > 0.000001)
-        {
-          //Третья четверть
-          pos3.Add(xMin + xc);
-          pos3.Add(yMin + yc);
-          //Четвёртая четверть
-          pos4.Add(yc + yMin);
-          pos4.Add(xc - xMin);
-          //Вторая четверть
-          pos2.Add(yc - yMin);
-          pos2.Add(xMin + xc);
-          //Первая четверть
-          pos1.Add(xc - xMin);
-          pos1.Add(yc - yMin);
-
-          #region Small ellipse
-          if (xMin <= 0)
-          {
-            float xMinD = xMin + 1;
-            float yMinD = yMin;
-            float xMinS = xMin;
-            float yMinS = yMin + 1;
-            if (bMin * (xMinS * xMinS + xMinD * xMinD) + aMin * (yMinS * yMinS + yMinD * yMinD) - 2 * rMin > 0)
-            {
-              xMin = xMinD;
-              yMin = yMinD;
-            }
-            else
-            {
-              xMin = xMinS;
-              yMin = yMinS;
-            }
-          }
-          #endregion
-        }
       }
       #endregion
       pos4.Reverse();
       pos2.Reverse();
-      _ellipseShader.Uniform4("fragmentColor", new Vector4(_drawEllipseData[index].EllipsePen.Color.R * ColorFloat, _drawEllipseData[index].EllipsePen.Color.G * ColorFloat, _drawEllipseData[index].EllipsePen.Color.B * ColorFloat, _drawEllipseData[index].EllipsePen.Color.A * ColorFloat));
+      _simpleShader.AttachVAO(_ellipseVAO);
+      _simpleShader.Uniform4("fragmentColor", new Vector4(_drawEllipseData[index].EllipsePen.Color.R * ColorFloat, _drawEllipseData[index].EllipsePen.Color.G * ColorFloat, _drawEllipseData[index].EllipsePen.Color.B * ColorFloat, _drawEllipseData[index].EllipsePen.Color.A * ColorFloat));
+      _simpleShader.Resize(VBOdata.Positions, pos1.Count * 4 * sizeof(float));
+      _simpleShader.ChangeData(VBOdata.Positions, pos1.ToArray());
+
+      _simpleShader.ChangeData(VBOdata.Positions, pos2.ToArray(), pos1.Count * sizeof(float));
+      _simpleShader.ChangeData(VBOdata.Positions, pos3.ToArray(), pos1.Count * sizeof(float) * 2);
+      _simpleShader.ChangeData(VBOdata.Positions, pos4.ToArray(), pos1.Count * sizeof(float) * 3);
+      _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      _simpleShader.DrawArrays(
+      penW <= 0.0001
+      ? BeginMode.Points
+      : BeginMode.LineStrip, 0, pos1.Count * 2);
+      _simpleShader.AttachVAO(_simplePrimitivesVAO);
+      _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+
+      /*_ellipseShader.Uniform4("fragmentColor", new Vector4(_drawEllipseData[index].EllipsePen.Color.R * ColorFloat, _drawEllipseData[index].EllipsePen.Color.G * ColorFloat, _drawEllipseData[index].EllipsePen.Color.B * ColorFloat, _drawEllipseData[index].EllipsePen.Color.A * ColorFloat));
       _ellipseShader.Resize(VBOdata.Positions, pos1.Count * 4 * sizeof(float));
       _ellipseShader.ChangeData(VBOdata.Positions, pos1.ToArray());
 
@@ -252,9 +366,147 @@ namespace GraphicLib.OpenGl
       _ellipseShader.ChangeData(VBOdata.Positions, pos4.ToArray(), pos1.Count * sizeof(float) * 3);
       _ellipseShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
       _ellipseShader.DrawArrays(
-        Math.Abs(penW - 0.0) < 0.000001
-        ? BeginMode.Points
-        : BeginMode.LineStrip, 0, pos1.Count * 2);
+      Math.Abs(penW - 0.0) < 0.000001
+      ? BeginMode.Points
+      : BeginMode.LineStrip, 0, pos1.Count * 2);*/
+      //List<float> pos1 = new List<float>();
+      //List<float> pos2 = new List<float>();
+      //List<float> pos3 = new List<float>();
+      //List<float> pos4 = new List<float>();
+
+      //float xc = _drawEllipseData[index].X + _drawEllipseData[index].Width / 2;
+      //float yc = _drawEllipseData[index].Y + _drawEllipseData[index].Height / 2;
+      //float penW = _drawEllipseData[index].EllipsePen.Width - 1;
+      //#region Big ellipse calculations
+
+      //float widthMax = _drawEllipseData[index].Width + penW;
+      //float heightMax = _drawEllipseData[index].Height + penW;
+
+      //float aMax = (widthMax * widthMax) / 4;
+      //float bMax = (heightMax * heightMax) / 4;
+      //float rMax = aMax * bMax;
+
+      //float xMax = -widthMax / 2;
+      //float yMax = 0;
+
+      //#endregion
+      //#region Small ellipse calculations
+
+      //float widthMin = _drawEllipseData[index].Width - (penW);
+      //float heightMin = _drawEllipseData[index].Height - (penW);
+
+      //float aMin = (widthMin * widthMin) / 4;
+      //float bMin = (heightMin * heightMin) / 4;
+      //float rMin = aMin * bMin;
+
+      //float xMin = -widthMin / 2;
+      //float yMin = 0;
+
+      //#endregion
+
+      //#region Ellipse coords calculation
+      //while (xMax <= 1)
+      //{
+      //  //Третья четверть
+      //  pos3.Add(xMax + xc);
+      //  pos3.Add(yMax + yc);
+
+      //  //Четвёртая четверть
+      //  pos4.Add(yc + yMax);
+      //  pos4.Add(xc - xMax);
+
+      //  //Вторая четверть
+      //  pos2.Add(yc - yMax);
+      //  pos2.Add(xMax + xc);
+
+      //  //Первая четверть
+      //  pos1.Add(xc - xMax);
+      //  pos1.Add(yc - yMax);
+
+      //  #region Big ellipse
+      //  float xMaxD = xMax + 1;
+      //  float yMaxD = yMax;
+      //  float xMaxS = xMax;
+      //  float yMaxS = yMax + 1;
+      //  if (bMax * (xMaxS * xMaxS + xMaxD * xMaxD) + aMax * (yMaxS * yMaxS + yMaxD * yMaxD) - 2 * rMax > 0)
+      //  {
+      //    xMax = xMaxD;
+      //    yMax = yMaxD;
+      //  }
+      //  else
+      //  {
+      //    xMax = xMaxS;
+      //    yMax = yMaxS;
+      //  }
+      //  #endregion
+
+      //  if (Math.Abs(penW - 0) > 0.000001)
+      //  {
+      //    //Третья четверть
+      //    pos3.Add(xMin + xc);
+      //    pos3.Add(yMin + yc);
+      //    //Четвёртая четверть
+      //    pos4.Add(yc + yMin);
+      //    pos4.Add(xc - xMin);
+      //    //Вторая четверть
+      //    pos2.Add(yc - yMin);
+      //    pos2.Add(xMin + xc);
+      //    //Первая четверть
+      //    pos1.Add(xc - xMin);
+      //    pos1.Add(yc - yMin);
+
+      //    #region Small ellipse
+      //    if (xMin <= 0)
+      //    {
+      //      float xMinD = xMin + 1;
+      //      float yMinD = yMin;
+      //      float xMinS = xMin;
+      //      float yMinS = yMin + 1;
+      //      if (bMin * (xMinS * xMinS + xMinD * xMinD) + aMin * (yMinS * yMinS + yMinD * yMinD) - 2 * rMin > 0)
+      //      {
+      //        xMin = xMinD;
+      //        yMin = yMinD;
+      //      }
+      //      else
+      //      {
+      //        xMin = xMinS;
+      //        yMin = yMinS;
+      //      }
+      //    }
+      //    #endregion
+      //  }
+      //}
+      //#endregion
+      //pos4.Reverse();
+      //pos2.Reverse();
+      //_simpleShader.AttachVAO(_ellipseVAO);
+      //_simpleShader.Uniform4("fragmentColor", new Vector4(_drawEllipseData[index].EllipsePen.Color.R * ColorFloat, _drawEllipseData[index].EllipsePen.Color.G * ColorFloat, _drawEllipseData[index].EllipsePen.Color.B * ColorFloat, _drawEllipseData[index].EllipsePen.Color.A * ColorFloat));
+      //_simpleShader.Resize(VBOdata.Positions, pos1.Count * 4 * sizeof(float));
+      //_simpleShader.ChangeData(VBOdata.Positions, pos1.ToArray());
+
+      //_simpleShader.ChangeData(VBOdata.Positions, pos2.ToArray(), pos1.Count * sizeof(float));
+      //_simpleShader.ChangeData(VBOdata.Positions, pos3.ToArray(), pos1.Count * sizeof(float) * 2);
+      //_simpleShader.ChangeData(VBOdata.Positions, pos4.ToArray(), pos1.Count * sizeof(float) * 3);
+      //_simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      //_simpleShader.DrawArrays(
+      //  Math.Abs(penW - 0.0) < 0.000001
+      //  ? BeginMode.Points
+      //  : BeginMode.LineStrip, 0, pos1.Count * 2);
+      //_simpleShader.AttachVAO(_simplePrimitivesVAO);
+      //_simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+
+      ///*_ellipseShader.Uniform4("fragmentColor", new Vector4(_drawEllipseData[index].EllipsePen.Color.R * ColorFloat, _drawEllipseData[index].EllipsePen.Color.G * ColorFloat, _drawEllipseData[index].EllipsePen.Color.B * ColorFloat, _drawEllipseData[index].EllipsePen.Color.A * ColorFloat));
+      //_ellipseShader.Resize(VBOdata.Positions, pos1.Count * 4 * sizeof(float));
+      //_ellipseShader.ChangeData(VBOdata.Positions, pos1.ToArray());
+
+      //_ellipseShader.ChangeData(VBOdata.Positions, pos2.ToArray(), pos1.Count * sizeof(float));
+      //_ellipseShader.ChangeData(VBOdata.Positions, pos3.ToArray(), pos1.Count * sizeof(float) * 2);
+      //_ellipseShader.ChangeData(VBOdata.Positions, pos4.ToArray(), pos1.Count * sizeof(float) * 3);
+      //_ellipseShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      //_ellipseShader.DrawArrays(
+      //  Math.Abs(penW - 0.0) < 0.000001
+      //  ? BeginMode.Points
+      //  : BeginMode.LineStrip, 0, pos1.Count * 2);*/
     }
     #endregion
 
@@ -271,11 +523,12 @@ namespace GraphicLib.OpenGl
     public bool Resize(int width, int height, float scaling, object drawingContainer = null)
     {
       _windowSize = new Size(Convert.ToInt32(width * scaling), Convert.ToInt32(height * scaling));
-      float[] projectionMatrix = new float[16];
-      Matrix.Matrix4Ortho(projectionMatrix, 0, _windowSize.Width - 1, _windowSize.Height - 1, 0, -1, 1);
-      _simpleShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
-      _ellipseShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
-      _textureShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
+      //float[] projectionMatrix = new float[16];
+      Matrix4 projectionMatrix = Matrix4.CreateOrthographicOffCenter(0, _windowSize.Width - 1, _windowSize.Height - 1, 0, -1, 1);
+      //Matrix.Matrix4Ortho(projectionMatrix, 0, _windowSize.Width - 1, _windowSize.Height - 1, 0, -1, 1);
+      _simpleShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
+      //_ellipseShader.UniformMatrix4("projectionMatrix", projectionMatrix, true);
+      _textureShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
       return true;
     }
 
@@ -507,6 +760,8 @@ namespace GraphicLib.OpenGl
       int drawEllipseNumber = 0;
       #endregion
 
+      int count = 0;
+
       foreach (var drawAction in _actions)
       {
         switch (drawAction)
@@ -535,7 +790,10 @@ namespace GraphicLib.OpenGl
             fillEllipseNumber++;
             break;
           case DrawActions.ClipArea:
-            GL.Scissor(_clipAreaRects[clipAreaNumber].X, _windowSize.Height - _clipAreaRects[clipAreaNumber].Height - _clipAreaRects[clipAreaNumber].Y, _clipAreaRects[clipAreaNumber].Width, _clipAreaRects[clipAreaNumber].Height);
+            GL.Scissor(_clipAreaRects[clipAreaNumber].X,
+              _windowSize.Height - _clipAreaRects[clipAreaNumber].Height - _clipAreaRects[clipAreaNumber].Y,
+              _clipAreaRects[clipAreaNumber].Width,
+              _clipAreaRects[clipAreaNumber].Height);
             clipAreaNumber++;
             break;
           case DrawActions.DrawString:
@@ -549,7 +807,7 @@ namespace GraphicLib.OpenGl
         }
       }
       #region data clearing
-      /*_fillRectangleColors.Clear();
+      _fillRectangleColors.Clear();
       _vertexCoords.Clear();
       _drawImageTextures.Clear();
       _drawImageCoords.Clear();
@@ -557,18 +815,9 @@ namespace GraphicLib.OpenGl
       _drawEllipseData.Clear();
       _fillEllipseData.Clear();
       _actions.Clear();
-      _drawLinesPens.Clear();*/
-      _fillRectangleColors = new List<Vector4>();
-      _vertexCoords = new List<float>();
-      _drawImageTextures = new List<Texture>();
-      _drawImageCoords = new List<float>();
-      _drawImageTextureCoords = new List<float>();
-      _drawEllipseData = new List<DrawEllipseData>();
-      _fillEllipseData = new List<FillEllipseData>();
-      _actions = new List<DrawActions>();
-      _drawLinesPens = new List<Pen>();
-      _clipAreaRects = new List<Rectangle>();
-      GC.Collect();
+      _drawLinesPens.Clear();
+      _clipAreaRects.Clear();
+      //GC.Collect();
       #endregion
 
       GL.Disable(EnableCap.Blend);
@@ -587,6 +836,7 @@ namespace GraphicLib.OpenGl
     /// <param name="height">Gray area height</param>
     public void MakeGray(int x, int y, int width, int height)
     {
+      FillRectangle(new SolidBrush(Color.FromArgb(100, 0, 0, 0)), x, y, width, height);
     }
 
     #endregion

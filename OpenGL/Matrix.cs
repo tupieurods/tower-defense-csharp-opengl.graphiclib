@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace GraphicLib.OpenGL
 {
+  [Obsolete("Learning version. In real project use OpenTK.Matrix4")]
   public static class Matrix
   {
     /// <summary>
