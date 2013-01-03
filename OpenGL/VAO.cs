@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTK.Graphics.OpenGL;
 
 namespace GraphicLib.OpenGl
@@ -27,11 +28,9 @@ namespace GraphicLib.OpenGl
       GL.GenVertexArrays(1, out _vao);
       GL.BindVertexArray(_vao);
       if (VBOtypes != null)
-        foreach (var vbotype in VBOtypes)
+        foreach (var vbotype in VBOtypes.Where(vbotype => !VBOobjects.ContainsKey(vbotype)))
         {
-          //Если на вход поданы несколько буферов одного типа данных будет создан только один
-          if (!VBOobjects.ContainsKey(vbotype))
-            VBOobjects.Add(vbotype, new VBO(vbotype, VBObufferUsageHint, VBOsize));
+          VBOobjects.Add(vbotype, new VBO(vbotype, VBObufferUsageHint, VBOsize));
         }
       GL.BindVertexArray(0);
     }
@@ -54,6 +53,17 @@ namespace GraphicLib.OpenGl
     /// <param name="offset">Buffer offset </param>
     /// <returns>True if data changes successful</returns>
     internal bool ChangeData(VBOdata VBOtype, float[] dataBuffer, int offset = 0)
+    {
+      if (!VBOexists(VBOtype))
+        VBOobjects.Add(VBOtype, new VBO(VBOtype));
+      Bind();
+      bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
+      UnBind();
+      return result;
+    }
+
+    //ForDebugOnly
+    internal bool ChangeData(VBOdata VBOtype, double[] dataBuffer, int offset = 0)
     {
       if (!VBOexists(VBOtype))
         VBOobjects.Add(VBOtype, new VBO(VBOtype));

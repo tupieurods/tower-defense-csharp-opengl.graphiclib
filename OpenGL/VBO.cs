@@ -81,6 +81,17 @@ namespace GraphicLib.OpenGl
       return errorCode == ErrorCode.NoError;
     }
 
+    //ForDebugOnly
+    internal bool ChangeDataInVBO(double[] dataBuffer, int offset = 0)
+    {
+      int size = dataBuffer.Length * sizeof(double);
+      if (size > _currentSize)
+        Resize(size);
+      GL.Ext.NamedBufferSubData(_vbo, new IntPtr(offset), new IntPtr(size), dataBuffer);
+      var errorCode = GL.GetError();
+      return errorCode == ErrorCode.NoError;
+    }
+
     /// <summary>
     /// Changes the data in VBO.
     /// </summary>

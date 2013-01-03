@@ -116,6 +116,13 @@ namespace GraphicLib.OpenGl
       return result;
     }
 
+    //ForDebugOnly
+    public bool ChangeData(VBOdata VBOtype, double[] buffer, int offset = 0)
+    {
+      bool result = _vao.ChangeData(VBOtype, buffer, offset);
+      return result;
+    }
+
     /// <summary>
     /// Changes the data in VAO
     /// </summary>
@@ -206,6 +213,14 @@ namespace GraphicLib.OpenGl
       StopUseProgram();
     }
 
+    //ForDebugOnly
+    public void Uniform1(string parametrName, double value)
+    {
+      UseProgram();
+      GL.Uniform1(GetUniformLocation(parametrName), value);
+      StopUseProgram();
+    }
+
     public void Uniform2(string parametrName, Vector2 value)
     {
       UseProgram();
@@ -217,6 +232,13 @@ namespace GraphicLib.OpenGl
     {
       UseProgram();
       GL.Uniform3(GetUniformLocation(parametrName), value);
+      StopUseProgram();
+    }
+
+    public void Uniform3(string parametrName, int count, float[] value)
+    {
+      UseProgram();
+      GL.Uniform3(GetUniformLocation(parametrName), count, value);
       StopUseProgram();
     }
 

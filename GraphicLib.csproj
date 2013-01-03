@@ -74,6 +74,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\EllipseFragment.frag" />
     <None Include="Resources\SimpleFragmentShader.frag" />
     <None Include="Resources\SimpleVertexShader.vert" />
     <None Include="Resources\SimpleTextureFragment.frag" />

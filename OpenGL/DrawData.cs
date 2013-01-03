@@ -6,21 +6,15 @@ using System.Text;
 
 namespace GraphicLib.OpenGL
 {
-  internal struct FillEllipseData
+  //Currently implemented only SolidBrush
+  //No needs in other
+  internal struct EllipseData
   {
-    internal SolidBrush EllipseBrush;
-    internal float X;
-    internal float Y;
-    internal float Width;
-    internal float Height;
-  }
-
-  internal struct DrawEllipseData
-  {
-    internal Pen EllipsePen;
-    internal float X;
-    internal float Y;
-    internal float Width;
-    internal float Height;
+    internal float Xc;
+    internal float Yc;
+    internal float Xr;
+    internal float Yr;
+    internal Color color;
+    internal float border;
   }
 }
