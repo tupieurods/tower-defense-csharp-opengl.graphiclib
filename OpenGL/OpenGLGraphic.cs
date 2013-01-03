@@ -231,6 +231,7 @@ namespace GraphicLib.OpenGl
 
     /// <summary>
     /// Resizes drawing area
+    /// Don't Forget to change Clip area after resize
     /// </summary>
     /// <param name="width">The base width.</param>
     /// <param name="height">The base height.</param>
