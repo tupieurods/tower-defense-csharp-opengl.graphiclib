@@ -4,7 +4,7 @@ using System.Linq;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace GraphicLib.OpenGl
+namespace GraphicLib.OpenGL
 {
   public class ShaderProgram : IDisposable
   {
@@ -111,6 +111,19 @@ namespace GraphicLib.OpenGl
     /// <param name="offset">Buffer offset </param>
     /// <returns></returns>
     public bool ChangeData(VBOdata VBOtype, float[] buffer, int offset = 0)
+    {
+      bool result = _vao.ChangeData(VBOtype, buffer, offset);
+      return result;
+    }
+
+    /// <summary>
+    /// Changes the data in VAO
+    /// </summary>
+    /// <param name="VBOtype">The VBO type.</param>
+    /// <param name="buffer">The buffer.</param>
+    /// <param name="offset">Buffer offset </param>
+    /// <returns></returns>
+    public bool ChangeData(VBOdata VBOtype, float[,] buffer, int offset = 0)
     {
       bool result = _vao.ChangeData(VBOtype, buffer, offset);
       return result;

@@ -4,14 +4,13 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.Windows.Forms;
 using GraphicLib.Interfaces;
-using GraphicLib.OpenGL;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using BeginMode = OpenTK.Graphics.OpenGL.BeginMode;
 using EnableCap = OpenTK.Graphics.OpenGL.EnableCap;
 using GL = OpenTK.Graphics.OpenGL.GL;
 
-namespace GraphicLib.OpenGl
+namespace GraphicLib.OpenGL
 {
   /// <summary>
   /// Implements IGraphic for VideoCard with OpenGL

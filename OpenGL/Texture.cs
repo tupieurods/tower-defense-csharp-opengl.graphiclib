@@ -3,11 +3,11 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using OpenTK.Graphics.OpenGL;
 
-namespace GraphicLib.OpenGl
+namespace GraphicLib.OpenGL
 {
-  internal sealed class Texture : IDisposable
+  public sealed class Texture : IDisposable
   {
-    internal int GlHandle { get; private set; }
+    public int GlHandle { get; private set; }
     private int Width { get; set; }
     private int Height { get; set; }
     internal bool DisposeAfterFirstUse { get; private set; }
@@ -35,6 +35,11 @@ namespace GraphicLib.OpenGl
     public void Bind()
     {
       GL.BindTexture(TextureTarget.Texture2D, GlHandle);
+    }
+
+    public void UnBind()
+    {
+      GL.BindTexture(TextureTarget.Texture2D, 0);
     }
 
     #region Disposable

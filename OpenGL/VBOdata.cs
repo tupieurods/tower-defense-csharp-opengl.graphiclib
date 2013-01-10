@@ -1,4 +1,4 @@
-namespace GraphicLib.OpenGl
+namespace GraphicLib.OpenGL
 {
   public enum VBOdata
   {

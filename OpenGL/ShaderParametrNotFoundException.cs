@@ -1,6 +1,6 @@
 using System;
 
-namespace GraphicLib.OpenGl
+namespace GraphicLib.OpenGL
 {
   class ShaderParametrNotFoundException : Exception
   {
