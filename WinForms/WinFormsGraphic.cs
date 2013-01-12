@@ -133,6 +133,11 @@ namespace GraphicLib.WinForms
       _graphicalBuffer.Graphics.DrawImage(image, rect);
     }
 
+    public void DrawImagePart(Image image, Rectangle drawingRect, Rectangle imageRect)
+    {
+      throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Draws the line.
     /// </summary>

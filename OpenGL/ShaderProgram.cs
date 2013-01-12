@@ -261,6 +261,13 @@ namespace GraphicLib.OpenGL
       GL.Uniform4(GetUniformLocation(parametrName), value);
       StopUseProgram();
     }
+
+    public void Uniform4(string parametrName, float v0, float v1, float v2, float v3)
+    {
+      UseProgram();
+      GL.Uniform4(GetUniformLocation(parametrName), v0, v1, v2, v3);
+      StopUseProgram();
+    }
     #endregion
 
     /// <summary>

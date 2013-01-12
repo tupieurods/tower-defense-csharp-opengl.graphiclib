@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
+﻿using System.Drawing;
 using GraphicLib.Interfaces;
 
 namespace GraphicLib.Empty
 {
+  //For tests
   public class EmptyGraphics : IGraphic
   {
     #region Implementation of IGraphic
@@ -100,6 +97,10 @@ namespace GraphicLib.Empty
     /// <param name="image">The image.</param>
     /// <param name="rect">The rect.</param>
     public void DrawImage(Image image, Rectangle rect)
+    {
+    }
+
+    public void DrawImagePart(Image image, Rectangle drawingRect, Rectangle imageRect)
     {
     }
 

@@ -82,7 +82,6 @@ namespace GraphicLib.OpenGL
     /// <summary>
     /// Data for FillEllipseReal method
     /// </summary>
-    //private readonly List<EllipseData> _fillEllipseData = new List<EllipseData>();
     private readonly List<float> _ellipseCoords = new List<float>();
 
     /// <summary>
@@ -142,10 +141,10 @@ namespace GraphicLib.OpenGL
     private void DrawLineReal(int index, int offset)
     {
       _simpleShader.Uniform4("fragmentColor",
-              new Vector4(_drawLinesPens[index].Color.R * ColorFloat,
-              _drawLinesPens[index].Color.G * ColorFloat,
-              _drawLinesPens[index].Color.B * ColorFloat,
-              _drawLinesPens[index].Color.A * ColorFloat));
+        _drawLinesPens[index].Color.R * ColorFloat,
+        _drawLinesPens[index].Color.G * ColorFloat,
+        _drawLinesPens[index].Color.B * ColorFloat,
+        _drawLinesPens[index].Color.A * ColorFloat);
       GL.LineWidth(_drawLinesPens[index].Width);
       _simpleShader.DrawArrays(BeginMode.Lines, offset, 2);
     }
@@ -185,11 +184,6 @@ namespace GraphicLib.OpenGL
       _ellipseCoords.Add(xc + widthMax / 2); _ellipseCoords.Add(yc - heightMax / 2);
       _ellipseCoords.Add(xc + widthMax / 2); _ellipseCoords.Add(yc + heightMax / 2);
       _ellipseCoords.Add(xc - widthMax / 2); _ellipseCoords.Add(yc + heightMax / 2);
-      /*_ellipseCoords.AddRange(new[]{
-                            xc - widthMax / 2, yc - heightMax / 2,
-                            xc + widthMax / 2, yc - heightMax / 2,
-                            xc + widthMax / 2, yc + heightMax / 2,
-                            xc - widthMax / 2, yc + heightMax / 2});*/
       _actions.Add(DrawActions.DrawEllipse);
       _ellipseData.Add(new EllipseData { color = color, Xc = xc, Yc = yc, Xr = width / 2, Yr = height / 2, border = border });
     }
@@ -210,17 +204,6 @@ namespace GraphicLib.OpenGL
       _ellipseConfiguration[6] = _ellipseData[index].Xr;
       _ellipseConfiguration[7] = _ellipseData[index].Yr;
       _ellipseConfiguration[8] = _ellipseData[index].border;
-
-      /*float[] _ellipseConfiguration = {
-                                //Color:
-                                _ellipseData[index].color.R * ColorFloat, 
-                                _ellipseData[index].color.G * ColorFloat, 
-                                _ellipseData[index].color.B * ColorFloat,
-                                //Center
-                                _ellipseData[index].Xc, _windowSize.Height - _ellipseData[index].Yc, 0,
-                                //xRadius, yRadius and border
-                                _ellipseData[index].Xr, _ellipseData[index].Yr, _ellipseData[index].border
-                              };*/
       _ellipseShader.Uniform3("conf", 3, _ellipseConfiguration);
       _ellipseShader.DrawArrays(BeginMode.Polygon, offset, 4);
     }
@@ -240,9 +223,7 @@ namespace GraphicLib.OpenGL
     public bool Resize(int width, int height, float scaling, object drawingContainer = null)
     {
       _windowSize = new Size(Convert.ToInt32(width * scaling), Convert.ToInt32(height * scaling));
-      //float[] projectionMatrix = new float[16];
       Matrix4 projectionMatrix = Matrix4.CreateOrthographicOffCenter(0, _windowSize.Width - 1, _windowSize.Height - 1, 0, -1, 1);
-      //Matrix.Matrix4Ortho(projectionMatrix, 0, _windowSize.Width - 1, _windowSize.Height - 1, 0, -1, 1);
       _simpleShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
       _ellipseShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
       _textureShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
@@ -261,8 +242,6 @@ namespace GraphicLib.OpenGL
       {
         _clipAreaRects.Add(value);
         _actions.Add(DrawActions.ClipArea);
-        /*GL.Enable(EnableCap.ScissorTest);
-        GL.Scissor(value.X, _windowSize.Height - value.Height - value.Y, value.Width, value.Height);*/
       }
     }
 
@@ -325,7 +304,6 @@ namespace GraphicLib.OpenGL
       canva.Clear(Color.Transparent);
       canva.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
       canva.DrawString(s, font, brush, 0, 0);
-      //using (Texture image = new Texture(tmp))
       DrawTexture(new Texture(tmp, true), (int)point.X, (int)point.Y, tmp.Width, tmp.Height);
     }
 
@@ -339,9 +317,14 @@ namespace GraphicLib.OpenGL
     /// <param name="height">The height.</param>
     public void DrawImage(Image image, int x, int y, int width, int height)
     {
+      DrawTexture(TextureCache(image), x, y, width, height);
+    }
+
+    private static Texture TextureCache(Image image)
+    {
       var img = image as Bitmap;
       if (img == null)
-        return;
+        throw new ArgumentNullException("image");
       int hashCode = img.GetHashCode();
       Texture tmp;
       if (!Cache.ContainsKey(hashCode))
@@ -357,7 +340,7 @@ namespace GraphicLib.OpenGL
       }
       else
         tmp = Cache[hashCode];
-      DrawTexture(tmp, x, y, width, height);
+      return tmp;
     }
 
     /// <summary>
@@ -368,6 +351,24 @@ namespace GraphicLib.OpenGL
     public void DrawImage(Image image, Rectangle rect)
     {
       DrawImage(image, rect.X, rect.Y, rect.Width, rect.Height);
+    }
+
+    public void DrawImagePart(Image image, Rectangle drawingRect, Rectangle imageRect)
+    {
+      Texture tex = TextureCache(image);
+      _drawImageCoords.Add(drawingRect.X); _drawImageCoords.Add(drawingRect.Y);
+      _drawImageCoords.Add(drawingRect.X + drawingRect.Width); _drawImageCoords.Add(drawingRect.Y);
+      _drawImageCoords.Add(drawingRect.X + drawingRect.Width); _drawImageCoords.Add(drawingRect.Y + drawingRect.Height);
+      _drawImageCoords.Add(drawingRect.X); _drawImageCoords.Add(drawingRect.Y + drawingRect.Height);
+
+      _drawImageTextureCoords.Add((float)imageRect.X / image.Width); _drawImageTextureCoords.Add((float)imageRect.Y / image.Height);
+      _drawImageTextureCoords.Add((float)imageRect.Width / image.Width); _drawImageTextureCoords.Add((float)imageRect.Y / image.Height);
+      _drawImageTextureCoords.Add((float)imageRect.Width / image.Width); _drawImageTextureCoords.Add((float)imageRect.Height / image.Height);
+      _drawImageTextureCoords.Add((float)imageRect.X / image.Width); _drawImageTextureCoords.Add((float)imageRect.Height / image.Height);
+
+      _drawImageTextures.Add(tex);
+
+      _actions.Add(DrawActions.DrawImage);
     }
 
     /// <summary>
@@ -448,7 +449,6 @@ namespace GraphicLib.OpenGL
     /// </summary>
     public void Render()
     {
-      //GL.Finish();
       GL.Enable(EnableCap.ScissorTest);
       GL.Enable(EnableCap.Texture2D);
       GL.Enable(EnableCap.Blend);
@@ -543,14 +543,11 @@ namespace GraphicLib.OpenGL
       _actions.Clear();
       _drawLinesPens.Clear();
       _clipAreaRects.Clear();
-      //GC.Collect();
       #endregion
 
       GL.Disable(EnableCap.Blend);
       GL.Disable(EnableCap.Texture2D);
       GL.Disable(EnableCap.ScissorTest);
-
-      GL.Finish();
     }
 
     /// <summary>
@@ -567,5 +564,4 @@ namespace GraphicLib.OpenGL
 
     #endregion
   }
-
 }
