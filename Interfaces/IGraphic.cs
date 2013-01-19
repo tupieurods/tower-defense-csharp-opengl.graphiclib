@@ -73,7 +73,12 @@ namespace GraphicLib.Interfaces
     /// <param name="image">The image.</param>
     /// <param name="rect">The rect.</param>
     void DrawImage(Image image, Rectangle rect);
-
+    /// <summary>
+    /// Draws the part of image
+    /// </summary>
+    /// <param name="image">The image.</param>
+    /// <param name="drawingRect">The drawing rectangle.</param>
+    /// <param name="imageRect">Drawing image part rectangle</param>
     void DrawImagePart(Image image, Rectangle drawingRect, Rectangle imageRect);
     /// <summary>
     /// Draws the line.

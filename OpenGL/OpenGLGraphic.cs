@@ -353,6 +353,12 @@ namespace GraphicLib.OpenGL
       DrawImage(image, rect.X, rect.Y, rect.Width, rect.Height);
     }
 
+    /// <summary>
+    /// Draws the part of image
+    /// </summary>
+    /// <param name="image">The image.</param>
+    /// <param name="drawingRect">The drawing rectangle.</param>
+    /// <param name="imageRect">Drawing image part rectangle</param>
     public void DrawImagePart(Image image, Rectangle drawingRect, Rectangle imageRect)
     {
       Texture tex = TextureCache(image);

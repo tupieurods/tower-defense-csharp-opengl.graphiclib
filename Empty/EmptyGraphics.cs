@@ -100,6 +100,12 @@ namespace GraphicLib.Empty
     {
     }
 
+    /// <summary>
+    /// Draws the part of image
+    /// </summary>
+    /// <param name="image">The image.</param>
+    /// <param name="drawingRect">The drawing rectangle.</param>
+    /// <param name="imageRect">Drawing image part rectangle</param>
     public void DrawImagePart(Image image, Rectangle drawingRect, Rectangle imageRect)
     {
     }

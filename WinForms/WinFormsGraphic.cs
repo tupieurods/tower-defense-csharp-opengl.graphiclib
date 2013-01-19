@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using GraphicLib.Interfaces;
 
@@ -54,6 +55,7 @@ namespace GraphicLib.WinForms
         pictureBox.Width = Convert.ToInt32(width * scaling);
         pictureBox.Height = Convert.ToInt32(height * scaling);
         _graphicalBuffer = BufferedGraphicsManager.Current.Allocate(pictureBox.CreateGraphics(), new Rectangle(new Point(0, 0), pictureBox.Size));
+        _graphicalBuffer.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
         return true;
       }
       return false;
@@ -135,7 +137,7 @@ namespace GraphicLib.WinForms
 
     public void DrawImagePart(Image image, Rectangle drawingRect, Rectangle imageRect)
     {
-      throw new NotImplementedException();
+      _graphicalBuffer.Graphics.DrawImage(image, drawingRect.X, drawingRect.Y, imageRect, GraphicsUnit.Pixel);
     }
 
     /// <summary>
