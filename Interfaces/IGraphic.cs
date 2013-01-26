@@ -23,6 +23,7 @@ namespace GraphicLib.Interfaces
     /// The clip.
     /// </value>
     Rectangle Clip { set; }
+
     /// <summary>
     /// Fills the rectangle.
     /// </summary>
@@ -32,6 +33,7 @@ namespace GraphicLib.Interfaces
     /// <param name="width">The width.</param>
     /// <param name="height">The height.</param>
     void FillRectangle(SolidBrush brush, int x, int y, int width, int height);
+
     /// <summary>
     /// Fills the rectangle.
     /// </summary>
@@ -41,6 +43,7 @@ namespace GraphicLib.Interfaces
     /// <param name="width">The width.</param>
     /// <param name="height">The height.</param>
     void FillRectangle(SolidBrush brush, float x, float y, float width, float height);
+
     /// <summary>
     /// Fills the ellipse.
     /// </summary>
@@ -50,6 +53,7 @@ namespace GraphicLib.Interfaces
     /// <param name="width">The width.</param>
     /// <param name="height">The height.</param>
     void FillEllipse(SolidBrush brush, float x, float y, float width, float height);
+
     /// <summary>
     /// Draws the string.
     /// </summary>
@@ -58,6 +62,7 @@ namespace GraphicLib.Interfaces
     /// <param name="brush">The brush.</param>
     /// <param name="point">The point.</param>
     void DrawString(string s, Font font, Brush brush, PointF point);
+
     /// <summary>
     /// Draws the image.
     /// </summary>
@@ -67,12 +72,14 @@ namespace GraphicLib.Interfaces
     /// <param name="width">The width.</param>
     /// <param name="height">The height.</param>
     void DrawImage(Image image, int x, int y, int width, int height);
+
     /// <summary>
     /// Draws the image.
     /// </summary>
     /// <param name="image">The image.</param>
     /// <param name="rect">The rect.</param>
     void DrawImage(Image image, Rectangle rect);
+
     /// <summary>
     /// Draws the part of image
     /// </summary>
@@ -80,6 +87,7 @@ namespace GraphicLib.Interfaces
     /// <param name="drawingRect">The drawing rectangle.</param>
     /// <param name="imageRect">Drawing image part rectangle</param>
     void DrawImagePart(Image image, Rectangle drawingRect, Rectangle imageRect);
+
     /// <summary>
     /// Draws the line.
     /// </summary>
@@ -87,6 +95,7 @@ namespace GraphicLib.Interfaces
     /// <param name="pt1">The PT1.</param>
     /// <param name="pt2">The PT2.</param>
     void DrawLine(Pen pen, Point pt1, Point pt2);
+
     /// <summary>
     /// Draws the line.
     /// </summary>
@@ -96,12 +105,14 @@ namespace GraphicLib.Interfaces
     /// <param name="x2">The x2.</param>
     /// <param name="y2">The y2.</param>
     void DrawLine(Pen pen, float x1, float y1, float x2, float y2);
+
     /// <summary>
     /// Draws the rectangle.
     /// </summary>
     /// <param name="pen">The pen.</param>
     /// <param name="rect">The rect.</param>
     void DrawRectangle(Pen pen, Rectangle rect);
+
     /// <summary>
     /// Draws the rectangle.
     /// </summary>
@@ -111,6 +122,7 @@ namespace GraphicLib.Interfaces
     /// <param name="width">The width.</param>
     /// <param name="height">The height.</param>
     void DrawRectangle(Pen pen, int x, int y, int width, int height);
+
     /// <summary>
     /// Draws the ellipse.
     /// </summary>
@@ -120,10 +132,21 @@ namespace GraphicLib.Interfaces
     /// <param name="width">The width.</param>
     /// <param name="height">The height.</param>
     void DrawEllipse(Pen pen, float x, float y, float width, float height);
+
     /// <summary>
     /// Renders this instance.
     /// </summary>
     void Render();
+
+    /// <summary>
+    /// Clears the cache.
+    /// </summary>
+    void ClearCache();
+
+    /// <summary>
+    /// Removes the image from cache.
+    /// </summary>
+    void RemoveImageFromCache(Image image);
 
     /// <summary>
     /// Makes game window gray

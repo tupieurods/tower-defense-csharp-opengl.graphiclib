@@ -4,7 +4,7 @@ using GraphicLib.Interfaces;
 namespace GraphicLib.Empty
 {
   //For tests
-  public class EmptyGraphics : IGraphic
+  public class EmptyGraphics: IGraphic
   {
     #region Implementation of IGraphic
 
@@ -169,6 +169,20 @@ namespace GraphicLib.Empty
     /// Renders this instance.
     /// </summary>
     public void Render()
+    {
+    }
+
+    /// <summary>
+    /// Clears the cache.
+    /// </summary>
+    public void ClearCache()
+    {
+    }
+
+    /// <summary>
+    /// Removes the image from cache.
+    /// </summary>
+    public void RemoveImageFromCache(Image image)
     {
     }
 

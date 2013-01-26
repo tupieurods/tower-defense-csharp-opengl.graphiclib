@@ -6,7 +6,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace GraphicLib.OpenGL
 {
-  public class ShaderProgram : IDisposable
+  public class ShaderProgram: IDisposable
   {
     /// <summary>
     /// Shader program id on GPU
@@ -49,12 +49,16 @@ namespace GraphicLib.OpenGL
       GL.CompileShader(vertexShader);
       int status;
       GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out status);
-      if (status != 1)
+      if(status != 1)
+      {
         throw new ArgumentException("vertexShaderSource");
+      }
       GL.CompileShader(fragmentShader);
       GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out status);
-      if (status != 1)
+      if(status != 1)
+      {
         throw new ArgumentException("fragmentShaderSource");
+      }
       //Сборка шейдерной программы
       _shaderProgram = GL.CreateProgram();
       GL.AttachShader(_shaderProgram, vertexShader);
@@ -81,20 +85,25 @@ namespace GraphicLib.OpenGL
     /// <param name="normalized">if set to <c>true</c> [normalized].</param>
     /// <param name="stride">The stride.</param>
     /// <param name="offset">The offset.</param>
-    public void ChangeAttribute(VBOdata VBOtype, string attributeName, int size, VertexAttribPointerType type, bool normalized, int stride, int offset)
+    public void ChangeAttribute(VBOdata VBOtype, string attributeName, int size, VertexAttribPointerType type,
+                                bool normalized, int stride, int offset)
     {
       _vao.BindWithVBO(VBOtype);
 
-      if (!_attribLocations.ContainsKey(attributeName))
+      if(!_attribLocations.ContainsKey(attributeName))
+      {
         _attribLocations.Add(attributeName, GL.GetAttribLocation(_shaderProgram, attributeName));
+      }
       int attributeLocation = _attribLocations[attributeName];
-      if (attributeLocation != -1)
+      if(attributeLocation != -1)
       {
         GL.VertexAttribPointer(attributeLocation, size, type, normalized, stride, offset);
         GL.EnableVertexAttribArray(attributeLocation);
       }
       else
+      {
         throw new ShaderParametrNotFoundException();
+      }
       _vao.UnBindWithVBO(VBOtype);
     }
 
@@ -188,10 +197,14 @@ namespace GraphicLib.OpenGL
     {
       UseProgram();
       int projectionMatrixLocation = GL.GetUniformLocation(_shaderProgram, matrixName);
-      if (projectionMatrixLocation != -1)
+      if(projectionMatrixLocation != -1)
+      {
         GL.UniformMatrix4(projectionMatrixLocation, 1, transpose, matrix);
+      }
       else
+      {
         throw new ShaderParametrNotFoundException();
+      }
       StopUseProgram();
     }
 
@@ -199,10 +212,14 @@ namespace GraphicLib.OpenGL
     {
       UseProgram();
       int projectionMatrixLocation = GL.GetUniformLocation(_shaderProgram, matrixName);
-      if (projectionMatrixLocation != -1)
+      if(projectionMatrixLocation != -1)
+      {
         GL.UniformMatrix4(projectionMatrixLocation, transpose, ref matrix);
+      }
       else
+      {
         throw new ShaderParametrNotFoundException();
+      }
       StopUseProgram();
     }
 
@@ -210,11 +227,13 @@ namespace GraphicLib.OpenGL
 
     private int GetUniformLocation(string parametrName)
     {
-      if (!_uniformLocations.ContainsKey(parametrName))
+      if(!_uniformLocations.ContainsKey(parametrName))
       {
         _uniformLocations.Add(parametrName, GL.GetUniformLocation(_shaderProgram, parametrName));
-        if (_uniformLocations[parametrName] == -1)
+        if(_uniformLocations[parametrName] == -1)
+        {
           throw new ShaderParametrNotFoundException();
+        }
       }
       return _uniformLocations[parametrName];
     }
@@ -268,6 +287,7 @@ namespace GraphicLib.OpenGL
       GL.Uniform4(GetUniformLocation(parametrName), v0, v1, v2, v3);
       StopUseProgram();
     }
+
     #endregion
 
     /// <summary>
@@ -293,8 +313,10 @@ namespace GraphicLib.OpenGL
     /// <param name="type">The type.</param>
     public void DrawElements(BeginMode mode, int count, DrawElementsType type = DrawElementsType.UnsignedInt)
     {
-      if (!_vao.VBOexists(VBOdata.Index))
+      if(!_vao.VBOexists(VBOdata.Index))
+      {
         throw new VBONotFoundException("Index VBO not found");
+      }
       UseProgram();
       _vao.BindWithVBO(VBOdata.Index);
       GL.DrawElements(mode, count, type, IntPtr.Zero);

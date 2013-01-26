@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define debug
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Text;
@@ -15,9 +17,8 @@ namespace GraphicLib.OpenGL
   /// <summary>
   /// Implements IGraphic for VideoCard with OpenGL
   /// </summary>
-  public class OpenGLGraphic : IGraphic
+  public class OpenGLGraphic: IGraphic
   {
-
     /// <summary>
     /// Texture cache
     /// </summary>
@@ -41,11 +42,12 @@ namespace GraphicLib.OpenGL
     private readonly ShaderProgram _textureShader;
 
     /// <summary>
-    /// constant for color transfering
+    /// constant for color transferring
     /// </summary>
     private const float ColorFloat = 1.0f / 255.0f;
 
     #region Order data
+
     /// <summary>
     /// Rendering order action
     /// </summary>
@@ -65,10 +67,12 @@ namespace GraphicLib.OpenGL
     /// Texture positions
     /// </summary>
     private readonly List<float> _drawImageCoords = new List<float>();
+
     /// <summary>
     /// InTexture positions
     /// </summary>
     private readonly List<float> _drawImageTextureCoords = new List<float>();
+
     /// <summary>
     /// Textures for draw image method
     /// </summary>
@@ -96,13 +100,17 @@ namespace GraphicLib.OpenGL
 
     //To prevent array recreating
     private readonly float[] _ellipseConfiguration = new float[9];
+
     #endregion
 
     public OpenGLGraphic(Size windowSize)
     {
-      _simpleShader = new ShaderProgram(Properties.Resources.SimpleVertexShader, Properties.Resources.SimpleFragmentShader, new VAO());
-      _textureShader = new ShaderProgram(Properties.Resources.SimpleTextureVertex, Properties.Resources.SimpleTextureFragment, new VAO());
-      _ellipseShader = new ShaderProgram(Properties.Resources.SimpleVertexShader, Properties.Resources.EllipseFragment, new VAO());
+      _simpleShader = new ShaderProgram(Properties.Resources.SimpleVertexShader,
+                                        Properties.Resources.SimpleFragmentShader, new VAO());
+      _textureShader = new ShaderProgram(Properties.Resources.SimpleTextureVertex,
+                                         Properties.Resources.SimpleTextureFragment, new VAO());
+      _ellipseShader = new ShaderProgram(Properties.Resources.SimpleVertexShader, Properties.Resources.EllipseFragment,
+                                         new VAO());
       Resize(windowSize.Width, windowSize.Height, 1.0f);
     }
 
@@ -118,15 +126,23 @@ namespace GraphicLib.OpenGL
     /// <param name="height">The height.</param>
     private void DrawTexture(Texture image, int x, int y, int width, int height)
     {
-      _drawImageCoords.Add(x); _drawImageCoords.Add(y);
-      _drawImageCoords.Add(x + width); _drawImageCoords.Add(y);
-      _drawImageCoords.Add(x + width); _drawImageCoords.Add(y + height);
-      _drawImageCoords.Add(x); _drawImageCoords.Add(y + height);
+      _drawImageCoords.Add(x);
+      _drawImageCoords.Add(y);
+      _drawImageCoords.Add(x + width);
+      _drawImageCoords.Add(y);
+      _drawImageCoords.Add(x + width);
+      _drawImageCoords.Add(y + height);
+      _drawImageCoords.Add(x);
+      _drawImageCoords.Add(y + height);
 
-      _drawImageTextureCoords.Add(0.0f); _drawImageTextureCoords.Add(0.0f);
-      _drawImageTextureCoords.Add(1.0f); _drawImageTextureCoords.Add(0.0f);
-      _drawImageTextureCoords.Add(1.0f); _drawImageTextureCoords.Add(1.0f);
-      _drawImageTextureCoords.Add(0.0f); _drawImageTextureCoords.Add(1.0f);
+      _drawImageTextureCoords.Add(0.0f);
+      _drawImageTextureCoords.Add(0.0f);
+      _drawImageTextureCoords.Add(1.0f);
+      _drawImageTextureCoords.Add(0.0f);
+      _drawImageTextureCoords.Add(1.0f);
+      _drawImageTextureCoords.Add(1.0f);
+      _drawImageTextureCoords.Add(0.0f);
+      _drawImageTextureCoords.Add(1.0f);
 
       _drawImageTextures.Add(image);
 
@@ -141,10 +157,10 @@ namespace GraphicLib.OpenGL
     private void DrawLineReal(int index, int offset)
     {
       _simpleShader.Uniform4("fragmentColor",
-        _drawLinesPens[index].Color.R * ColorFloat,
-        _drawLinesPens[index].Color.G * ColorFloat,
-        _drawLinesPens[index].Color.B * ColorFloat,
-        _drawLinesPens[index].Color.A * ColorFloat);
+                             _drawLinesPens[index].Color.R * ColorFloat,
+                             _drawLinesPens[index].Color.G * ColorFloat,
+                             _drawLinesPens[index].Color.B * ColorFloat,
+                             _drawLinesPens[index].Color.A * ColorFloat);
       GL.LineWidth(_drawLinesPens[index].Width);
       _simpleShader.DrawArrays(BeginMode.Lines, offset, 2);
     }
@@ -170,22 +186,37 @@ namespace GraphicLib.OpenGL
       _drawImageTextures[index].Bind();
       _textureShader.Uniform1("Texture", _drawImageTextures[index].GlHandle);
       _textureShader.DrawArrays(BeginMode.Polygon, offset, 4);
-      if (_drawImageTextures[index].DisposeAfterFirstUse)
+      if(_drawImageTextures[index].DisposeAfterFirstUse)
+      {
         _drawImageTextures[index].Dispose();
+      }
     }
 
+    /// <summary>
+    /// Adds the ellipse drawing task.
+    /// </summary>
+    /// <param name="x">The x.</param>
+    /// <param name="y">The y.</param>
+    /// <param name="width">The width.</param>
+    /// <param name="height">The height.</param>
+    /// <param name="border">The border.</param>
+    /// <param name="color">The color.</param>
     private void AddEllipseDrawingTask(float x, float y, float width, float height, float border, Color color)
     {
-      float widthMax = width + border + 5.0f;//+1 for AA support
+      float widthMax = width + border + 5.0f; //+1 for AA support
       float heightMax = height + border + 5.0f;
-      float xc = x + width / 2;
-      float yc = y + height / 2;
-      _ellipseCoords.Add(xc - widthMax / 2); _ellipseCoords.Add(yc - heightMax / 2);
-      _ellipseCoords.Add(xc + widthMax / 2); _ellipseCoords.Add(yc - heightMax / 2);
-      _ellipseCoords.Add(xc + widthMax / 2); _ellipseCoords.Add(yc + heightMax / 2);
-      _ellipseCoords.Add(xc - widthMax / 2); _ellipseCoords.Add(yc + heightMax / 2);
+      float xc = x + width / 2.0f;
+      float yc = y + height / 2.0f;
+      _ellipseCoords.Add(xc - widthMax / 2.0f);
+      _ellipseCoords.Add(yc - heightMax / 2.0f);
+      _ellipseCoords.Add(xc + widthMax / 2.0f);
+      _ellipseCoords.Add(yc - heightMax / 2.0f);
+      _ellipseCoords.Add(xc + widthMax / 2.0f);
+      _ellipseCoords.Add(yc + heightMax / 2.0f);
+      _ellipseCoords.Add(xc - widthMax / 2.0f);
+      _ellipseCoords.Add(yc + heightMax / 2.0f);
       _actions.Add(DrawActions.DrawEllipse);
-      _ellipseData.Add(new EllipseData { color = color, Xc = xc, Yc = yc, Xr = width / 2, Yr = height / 2, border = border });
+      _ellipseData.Add(new EllipseData { color = color, Xc = xc, Yc = yc, Xr = width / 2.0f, Yr = height / 2.0f, border = border });
     }
 
     /// <summary>
@@ -207,6 +238,7 @@ namespace GraphicLib.OpenGL
       _ellipseShader.Uniform3("conf", 3, _ellipseConfiguration);
       _ellipseShader.DrawArrays(BeginMode.Polygon, offset, 4);
     }
+
     #endregion
 
     #region Implementation of IGraphic
@@ -223,7 +255,8 @@ namespace GraphicLib.OpenGL
     public bool Resize(int width, int height, float scaling, object drawingContainer = null)
     {
       _windowSize = new Size(Convert.ToInt32(width * scaling), Convert.ToInt32(height * scaling));
-      Matrix4 projectionMatrix = Matrix4.CreateOrthographicOffCenter(0, _windowSize.Width - 1, _windowSize.Height - 1, 0, -1, 1);
+      Matrix4 projectionMatrix = Matrix4.CreateOrthographicOffCenter(0, _windowSize.Width - 1, _windowSize.Height - 1, 0,
+                                                                     -1, 1);
       _simpleShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
       _ellipseShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
       _textureShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
@@ -268,11 +301,16 @@ namespace GraphicLib.OpenGL
     /// <param name="height">The height.</param>
     public void FillRectangle(SolidBrush brush, float x, float y, float width, float height)
     {
-      _vertexCoords.Add(x); _vertexCoords.Add(y);
-      _vertexCoords.Add(x + width); _vertexCoords.Add(y);
-      _vertexCoords.Add(x + width); _vertexCoords.Add(y + height);
-      _vertexCoords.Add(x); _vertexCoords.Add(y + height);
-      _fillRectangleColors.Add(new Vector4(brush.Color.R * ColorFloat, brush.Color.G * ColorFloat, brush.Color.B * ColorFloat, brush.Color.A * ColorFloat));
+      _vertexCoords.Add(x);
+      _vertexCoords.Add(y);
+      _vertexCoords.Add(x + width);
+      _vertexCoords.Add(y);
+      _vertexCoords.Add(x + width);
+      _vertexCoords.Add(y + height);
+      _vertexCoords.Add(x);
+      _vertexCoords.Add(y + height);
+      _fillRectangleColors.Add(new Vector4(brush.Color.R * ColorFloat, brush.Color.G * ColorFloat,
+                                           brush.Color.B * ColorFloat, brush.Color.A * ColorFloat));
       _actions.Add(DrawActions.FillRectangle);
     }
 
@@ -298,6 +336,7 @@ namespace GraphicLib.OpenGL
     /// <param name="point">The point.</param>
     public void DrawString(string s, Font font, Brush brush, PointF point)
     {
+#if !debug
       Size textSize = TextRenderer.MeasureText(s, font);
       Bitmap tmp = new Bitmap(textSize.Width, textSize.Height);
       var canva = Graphics.FromImage(tmp);
@@ -305,6 +344,7 @@ namespace GraphicLib.OpenGL
       canva.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
       canva.DrawString(s, font, brush, 0, 0);
       DrawTexture(new Texture(tmp, true), (int)point.X, (int)point.Y, tmp.Width, tmp.Height);
+#endif
     }
 
     /// <summary>
@@ -323,23 +363,27 @@ namespace GraphicLib.OpenGL
     private static Texture TextureCache(Image image)
     {
       var img = image as Bitmap;
-      if (img == null)
+      if(img == null)
+      {
         throw new ArgumentNullException("image");
+      }
       int hashCode = img.GetHashCode();
       Texture tmp;
-      if (!Cache.ContainsKey(hashCode))
+      if(!Cache.ContainsKey(hashCode))
       {
         tmp = new Texture(img);
         Cache.Add(hashCode, tmp);
       }
-      else if (img.Tag != null && (int)img.Tag == 1)
+      else if(img.Tag != null && (int)img.Tag == 1)
       {
         Cache[hashCode].Dispose();
         tmp = new Texture(img);
         Cache[hashCode] = tmp;
       }
       else
+      {
         tmp = Cache[hashCode];
+      }
       return tmp;
     }
 
@@ -362,15 +406,23 @@ namespace GraphicLib.OpenGL
     public void DrawImagePart(Image image, Rectangle drawingRect, Rectangle imageRect)
     {
       Texture tex = TextureCache(image);
-      _drawImageCoords.Add(drawingRect.X); _drawImageCoords.Add(drawingRect.Y);
-      _drawImageCoords.Add(drawingRect.X + drawingRect.Width); _drawImageCoords.Add(drawingRect.Y);
-      _drawImageCoords.Add(drawingRect.X + drawingRect.Width); _drawImageCoords.Add(drawingRect.Y + drawingRect.Height);
-      _drawImageCoords.Add(drawingRect.X); _drawImageCoords.Add(drawingRect.Y + drawingRect.Height);
+      _drawImageCoords.Add(drawingRect.X);
+      _drawImageCoords.Add(drawingRect.Y);
+      _drawImageCoords.Add(drawingRect.X + drawingRect.Width);
+      _drawImageCoords.Add(drawingRect.Y);
+      _drawImageCoords.Add(drawingRect.X + drawingRect.Width);
+      _drawImageCoords.Add(drawingRect.Y + drawingRect.Height);
+      _drawImageCoords.Add(drawingRect.X);
+      _drawImageCoords.Add(drawingRect.Y + drawingRect.Height);
 
-      _drawImageTextureCoords.Add((float)imageRect.X / image.Width); _drawImageTextureCoords.Add((float)imageRect.Y / image.Height);
-      _drawImageTextureCoords.Add((float)imageRect.Width / image.Width); _drawImageTextureCoords.Add((float)imageRect.Y / image.Height);
-      _drawImageTextureCoords.Add((float)imageRect.Width / image.Width); _drawImageTextureCoords.Add((float)imageRect.Height / image.Height);
-      _drawImageTextureCoords.Add((float)imageRect.X / image.Width); _drawImageTextureCoords.Add((float)imageRect.Height / image.Height);
+      _drawImageTextureCoords.Add((float)imageRect.X / image.Width);
+      _drawImageTextureCoords.Add((float)imageRect.Y / image.Height);
+      _drawImageTextureCoords.Add((float)imageRect.Width / image.Width);
+      _drawImageTextureCoords.Add((float)imageRect.Y / image.Height);
+      _drawImageTextureCoords.Add((float)imageRect.Width / image.Width);
+      _drawImageTextureCoords.Add((float)imageRect.Height / image.Height);
+      _drawImageTextureCoords.Add((float)imageRect.X / image.Width);
+      _drawImageTextureCoords.Add((float)imageRect.Height / image.Height);
 
       _drawImageTextures.Add(tex);
 
@@ -398,8 +450,10 @@ namespace GraphicLib.OpenGL
     /// <param name="y2">The y2.</param>
     public void DrawLine(Pen pen, float x1, float y1, float x2, float y2)
     {
-      _vertexCoords.Add(x1); _vertexCoords.Add(y1);
-      _vertexCoords.Add(x2); _vertexCoords.Add(y2);
+      _vertexCoords.Add(x1);
+      _vertexCoords.Add(y1);
+      _vertexCoords.Add(x2);
+      _vertexCoords.Add(y2);
       _drawLinesPens.Add(pen);
       _actions.Add(DrawActions.DrawLine);
     }
@@ -441,7 +495,7 @@ namespace GraphicLib.OpenGL
     /// <param name="height">The height.</param>
     public void DrawEllipse(Pen pen, float x, float y, float width, float height)
     {
-      if (Math.Abs(pen.Width - Math.Min(width, height)) < 0.1)
+      if(Math.Abs(pen.Width - Math.Min(width, height)) < 0.1)
       {
         //Filling ellipse
         AddEllipseDrawingTask(x, y, width, height, 0, pen.Color);
@@ -463,25 +517,36 @@ namespace GraphicLib.OpenGL
       #region Uploading data to VBO
 
       #region Simple shader
+
       _simpleShader.ChangeData(VBOdata.Positions, _vertexCoords.ToArray());
-      _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      _simpleShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false,
+                                    2 * sizeof(float), 0);
+
       #endregion
 
       #region Texture shader
+
       _textureShader.ChangeData(VBOdata.Positions, _drawImageCoords.ToArray());
-      _textureShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      _textureShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false,
+                                     2 * sizeof(float), 0);
       _textureShader.ChangeData(VBOdata.TextureCoord, _drawImageTextureCoords.ToArray());
-      _textureShader.ChangeAttribute(VBOdata.TextureCoord, "texcoord", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      _textureShader.ChangeAttribute(VBOdata.TextureCoord, "texcoord", 2, VertexAttribPointerType.Float, false,
+                                     2 * sizeof(float), 0);
+
       #endregion
 
       #region Ellipse shader
+
       _ellipseShader.ChangeData(VBOdata.Positions, _ellipseCoords.ToArray());
-      _ellipseShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+      _ellipseShader.ChangeAttribute(VBOdata.Positions, "position", 2, VertexAttribPointerType.Float, false,
+                                     2 * sizeof(float), 0);
+
       #endregion
 
       #endregion
 
       #region Offsets and drawing methods indexes initializers
+
       int vboOffset = 0;
       int textureVBOoffset = 0;
       int ellipseVBOoffset = 0;
@@ -490,11 +555,12 @@ namespace GraphicLib.OpenGL
       int drawLineNumber = 0;
       int drawImageNumber = 0;
       int drawEllipseNumber = 0;
+
       #endregion
 
-      foreach (var drawAction in _actions)
+      foreach(var drawAction in _actions)
       {
-        switch (drawAction)
+        switch(drawAction)
         {
           case DrawActions.DrawImage:
             DrawImageReal(drawImageNumber, textureVBOoffset);
@@ -523,9 +589,9 @@ namespace GraphicLib.OpenGL
             break;
           case DrawActions.ClipArea:
             GL.Scissor(_clipAreaRects[clipAreaNumber].X,
-              _windowSize.Height - _clipAreaRects[clipAreaNumber].Height - _clipAreaRects[clipAreaNumber].Y,
-              _clipAreaRects[clipAreaNumber].Width,
-              _clipAreaRects[clipAreaNumber].Height);
+                       _windowSize.Height - _clipAreaRects[clipAreaNumber].Height - _clipAreaRects[clipAreaNumber].Y,
+                       _clipAreaRects[clipAreaNumber].Width,
+                       _clipAreaRects[clipAreaNumber].Height);
             clipAreaNumber++;
             break;
           case DrawActions.DrawString:
@@ -538,7 +604,9 @@ namespace GraphicLib.OpenGL
             throw new ArgumentOutOfRangeException();
         }
       }
+
       #region data clearing
+
       _fillRectangleColors.Clear();
       _vertexCoords.Clear();
       _drawImageTextures.Clear();
@@ -549,11 +617,35 @@ namespace GraphicLib.OpenGL
       _actions.Clear();
       _drawLinesPens.Clear();
       _clipAreaRects.Clear();
+
       #endregion
 
       GL.Disable(EnableCap.Blend);
       GL.Disable(EnableCap.Texture2D);
       GL.Disable(EnableCap.ScissorTest);
+    }
+
+    /// <summary>
+    /// Clears the cache.
+    /// </summary>
+    public void ClearCache()
+    {
+      if(Cache.Count == 0)
+      {
+        return;
+      }
+      Cache.Clear();
+    }
+
+    /// <summary>
+    /// Removes the image from cache.
+    /// </summary>
+    public void RemoveImageFromCache(Image image)
+    {
+      if(image != null && Cache.ContainsKey(image.GetHashCode()))
+      {
+        Cache.Remove(image.GetHashCode());
+      }
     }
 
     /// <summary>

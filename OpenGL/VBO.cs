@@ -6,9 +6,10 @@ namespace GraphicLib.OpenGL
   /// <summary>
   /// Don't create this class manually, from VAO class only
   /// </summary>
-  internal class VBO : IDisposable
+  internal class VBO: IDisposable
   {
     #region Private data
+
     /// <summary>
     /// VBO handle
     /// </summary>
@@ -25,18 +26,19 @@ namespace GraphicLib.OpenGL
     private readonly BufferTarget _bufferTarget;
 
     /// <summary>
-    /// VBO buffer usage hint, correct usage hint increases perfomance
+    /// VBO buffer usage hint, correct usage hint increases performance
     /// </summary>
     private readonly BufferUsageHint _bufferUsageHint;
+
     #endregion
 
     /// <summary>
     /// Initializes a new instance of the <see cref="VBO"/> class.
     /// </summary>
-    /// <param name="VBOtype">Logical type of data in vbo</param>
+    /// <param name="VBOtype">Logical type of data in VBO</param>
     /// <param name="bufferUsageHint">The buffer usage hint.</param>
     /// <param name="size">The size.</param>
-    internal VBO(VBOdata VBOtype, BufferUsageHint bufferUsageHint = BufferUsageHint.StreamDraw, int size = 0)
+    internal VBO(VBOdata VBOtype, BufferUsageHint bufferUsageHint = BufferUsageHint.DynamicDraw, int size = 0)
     {
       GL.GenBuffers(1, out _vbo);
       _bufferTarget = GetBufferTargetByType(VBOtype);
@@ -53,8 +55,10 @@ namespace GraphicLib.OpenGL
     /// <param name="size">The new size.</param>
     internal void Resize(int size)
     {
-      if (_currentSize >= size)
+      if(_currentSize >= size)
+      {
         return;
+      }
       GL.DeleteBuffers(1, ref _vbo);
       GL.GenBuffers(1, out _vbo);
       Bind();
@@ -74,8 +78,10 @@ namespace GraphicLib.OpenGL
     internal bool ChangeDataInVBO(float[] dataBuffer, int offset = 0)
     {
       int size = dataBuffer.Length * sizeof(float);
-      if (size > _currentSize)
+      if(size > _currentSize)
+      {
         Resize(size);
+      }
       GL.Ext.NamedBufferSubData(_vbo, new IntPtr(offset), new IntPtr(size), dataBuffer);
       var errorCode = GL.GetError();
       return errorCode == ErrorCode.NoError;
@@ -90,8 +96,10 @@ namespace GraphicLib.OpenGL
     internal bool ChangeDataInVBO(float[,] dataBuffer, int offset = 0)
     {
       int size = dataBuffer.Length * sizeof(float);
-      if (size > _currentSize)
+      if(size > _currentSize)
+      {
         Resize(size);
+      }
       GL.Ext.NamedBufferSubData(_vbo, new IntPtr(offset), new IntPtr(size), dataBuffer);
       var errorCode = GL.GetError();
       return errorCode == ErrorCode.NoError;
@@ -101,8 +109,10 @@ namespace GraphicLib.OpenGL
     internal bool ChangeDataInVBO(double[] dataBuffer, int offset = 0)
     {
       int size = dataBuffer.Length * sizeof(double);
-      if (size > _currentSize)
+      if(size > _currentSize)
+      {
         Resize(size);
+      }
       GL.Ext.NamedBufferSubData(_vbo, new IntPtr(offset), new IntPtr(size), dataBuffer);
       var errorCode = GL.GetError();
       return errorCode == ErrorCode.NoError;
@@ -117,8 +127,10 @@ namespace GraphicLib.OpenGL
     internal bool ChangeDataInVBO(uint[] dataBuffer, int offset = 0)
     {
       int size = dataBuffer.Length * sizeof(uint);
-      if (size > _currentSize)
+      if(size > _currentSize)
+      {
         Resize(size);
+      }
       GL.Ext.NamedBufferSubData(_vbo, new IntPtr(offset), new IntPtr(size), dataBuffer);
       var errorCode = GL.GetError();
       return errorCode == ErrorCode.NoError;
@@ -133,15 +145,19 @@ namespace GraphicLib.OpenGL
     internal bool ChangeDataInVBO(int[] dataBuffer, int offset = 0)
     {
       int size = dataBuffer.Length * sizeof(uint);
-      if (size > _currentSize)
+      if(size > _currentSize)
+      {
         Resize(size);
+      }
       GL.Ext.NamedBufferSubData(_vbo, new IntPtr(offset), new IntPtr(size), dataBuffer);
       var errorCode = GL.GetError();
       return errorCode == ErrorCode.NoError;
     }
+
     #endregion
 
     #region VBO binders
+
     /// <summary>
     /// Binds this instance.
     /// </summary>
@@ -157,6 +173,7 @@ namespace GraphicLib.OpenGL
     {
       GL.BindBuffer(_bufferTarget, 0);
     }
+
     #endregion
 
     /// <summary>
@@ -167,7 +184,7 @@ namespace GraphicLib.OpenGL
     private static BufferTarget GetBufferTargetByType(VBOdata VBOtype)
     {
       BufferTarget result;
-      switch (VBOtype)
+      switch(VBOtype)
       {
         case VBOdata.Positions:
         case VBOdata.Color:

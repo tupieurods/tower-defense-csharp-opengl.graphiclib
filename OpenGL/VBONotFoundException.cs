@@ -2,19 +2,22 @@ using System;
 
 namespace GraphicLib.OpenGL
 {
-  class VBONotFoundException : Exception
+  internal class VBONotFoundException: Exception
   {
     public VBONotFoundException()
     {
     }
+
     public VBONotFoundException(string str)
       : base(str)
     {
     }
+
     public VBONotFoundException(string str, Exception inner)
       : base(str, inner)
     {
     }
+
     public VBONotFoundException(
       System.Runtime.Serialization.SerializationInfo si,
       System.Runtime.Serialization.StreamingContext sc)

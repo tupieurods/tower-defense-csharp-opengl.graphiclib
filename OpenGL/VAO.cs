@@ -5,7 +5,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace GraphicLib.OpenGL
 {
-  public class VAO : IDisposable
+  public class VAO: IDisposable
   {
     /// <summary>
     /// VAO index on GPU
@@ -22,29 +22,35 @@ namespace GraphicLib.OpenGL
     /// </summary>
     /// <param name="VBOtypes">The VBO data types.</param>
     /// <param name="VBObufferUsageHint">The VBO buffer usage hint.</param>
-    /// <param name="VBOsize">The VBO osize.</param>
-    public VAO(VBOdata[] VBOtypes = null, BufferUsageHint VBObufferUsageHint = BufferUsageHint.StreamDraw, int VBOsize = 0)
+    /// <param name="VBOsize">The VBO size.</param>
+    public VAO(VBOdata[] VBOtypes = null, BufferUsageHint VBObufferUsageHint = BufferUsageHint.DynamicDraw,
+               int VBOsize = 0)
     {
       GL.GenVertexArrays(1, out _vao);
       GL.BindVertexArray(_vao);
-      if (VBOtypes != null)
-        foreach (var vbotype in VBOtypes.Where(vbotype => !VBOobjects.ContainsKey(vbotype)))
+      if(VBOtypes != null)
+      {
+        foreach(var vbotype in VBOtypes.Where(vbotype => !VBOobjects.ContainsKey(vbotype)))
         {
           VBOobjects.Add(vbotype, new VBO(vbotype, VBObufferUsageHint, VBOsize));
         }
+      }
       GL.BindVertexArray(0);
     }
 
     internal void Resize(VBOdata VBOtype, int size)
     {
-      if (!VBOexists(VBOtype))
+      if(!VBOexists(VBOtype))
+      {
         VBOobjects.Add(VBOtype, new VBO(VBOtype));
+      }
       Bind();
       VBOobjects[VBOtype].Resize(size);
       UnBind();
     }
 
     #region VAO data changers
+
     /// <summary>
     /// Changes stored data
     /// </summary>
@@ -54,8 +60,10 @@ namespace GraphicLib.OpenGL
     /// <returns>True if data changes successful</returns>
     internal bool ChangeData(VBOdata VBOtype, float[] dataBuffer, int offset = 0)
     {
-      if (!VBOexists(VBOtype))
+      if(!VBOexists(VBOtype))
+      {
         VBOobjects.Add(VBOtype, new VBO(VBOtype));
+      }
       Bind();
       bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
@@ -71,8 +79,10 @@ namespace GraphicLib.OpenGL
     /// <returns>True if data changes successful</returns>
     internal bool ChangeData(VBOdata VBOtype, float[,] dataBuffer, int offset = 0)
     {
-      if (!VBOexists(VBOtype))
+      if(!VBOexists(VBOtype))
+      {
         VBOobjects.Add(VBOtype, new VBO(VBOtype));
+      }
       Bind();
       bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
@@ -82,8 +92,10 @@ namespace GraphicLib.OpenGL
     //ForDebugOnly
     internal bool ChangeData(VBOdata VBOtype, double[] dataBuffer, int offset = 0)
     {
-      if (!VBOexists(VBOtype))
+      if(!VBOexists(VBOtype))
+      {
         VBOobjects.Add(VBOtype, new VBO(VBOtype));
+      }
       Bind();
       bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
@@ -99,8 +111,10 @@ namespace GraphicLib.OpenGL
     /// <returns>True if data changes successful</returns>
     internal bool ChangeData(VBOdata VBOtype, uint[] dataBuffer, int offset = 0)
     {
-      if (!VBOexists(VBOtype))
+      if(!VBOexists(VBOtype))
+      {
         VBOobjects.Add(VBOtype, new VBO(VBOtype));
+      }
       Bind();
       bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
@@ -116,13 +130,16 @@ namespace GraphicLib.OpenGL
     /// <returns>True if data changes successful</returns>
     internal bool ChangeData(VBOdata VBOtype, int[] dataBuffer, int offset = 0)
     {
-      if (!VBOexists(VBOtype))
+      if(!VBOexists(VBOtype))
+      {
         VBOobjects.Add(VBOtype, new VBO(VBOtype));
+      }
       Bind();
       bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
       return result;
     }
+
     #endregion
 
     /// <summary>
@@ -136,6 +153,7 @@ namespace GraphicLib.OpenGL
     }
 
     #region VAO binders
+
     /// <summary>
     /// Binds this instance.
     /// </summary>
@@ -158,8 +176,10 @@ namespace GraphicLib.OpenGL
     /// <param name="VBOtype">The VBO type.</param>
     internal void BindWithVBO(VBOdata VBOtype)
     {
-      if (!VBOobjects.ContainsKey(VBOtype))
+      if(!VBOobjects.ContainsKey(VBOtype))
+      {
         throw new ArgumentException("VBOtype");
+      }
       GL.BindVertexArray(_vao);
       VBOobjects[VBOtype].Bind();
     }
@@ -170,11 +190,14 @@ namespace GraphicLib.OpenGL
     /// <param name="VBOtype">The VBO type.</param>
     internal void UnBindWithVBO(VBOdata VBOtype)
     {
-      if (!VBOobjects.ContainsKey(VBOtype))
+      if(!VBOobjects.ContainsKey(VBOtype))
+      {
         throw new ArgumentException("VBOtype");
+      }
       GL.BindVertexArray(0);
       VBOobjects[VBOtype].UnBind();
     }
+
     #endregion
 
     #region Implementation of IDisposable
@@ -185,7 +208,7 @@ namespace GraphicLib.OpenGL
     /// <filterpriority>2</filterpriority>
     public void Dispose()
     {
-      foreach (var vboObject in VBOobjects)
+      foreach(var vboObject in VBOobjects)
       {
         vboObject.Value.Dispose();
       }

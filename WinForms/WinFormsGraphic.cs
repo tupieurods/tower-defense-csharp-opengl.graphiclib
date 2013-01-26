@@ -7,9 +7,9 @@ using GraphicLib.Interfaces;
 namespace GraphicLib.WinForms
 {
   /// <summary>
-  /// WinForms implementation fo IGraphic
+  /// WinForms implementation of IGraphic
   /// </summary>
-  public sealed class WinFormsGraphic : IGraphic
+  public sealed class WinFormsGraphic: IGraphic
   {
     /// <summary>
     /// For WinForms only
@@ -24,10 +24,7 @@ namespace GraphicLib.WinForms
     /// </value>
     public Rectangle Clip
     {
-      set
-      {
-        _graphicalBuffer.Graphics.Clip = new Region(value);
-      }
+      set { _graphicalBuffer.Graphics.Clip = new Region(value); }
     }
 
     /// <summary>
@@ -50,11 +47,12 @@ namespace GraphicLib.WinForms
     public bool Resize(int width, int height, float scaling, object drawingContainer = null)
     {
       var pictureBox = drawingContainer as PictureBox;
-      if (pictureBox != null)
+      if(pictureBox != null)
       {
         pictureBox.Width = Convert.ToInt32(width * scaling);
         pictureBox.Height = Convert.ToInt32(height * scaling);
-        _graphicalBuffer = BufferedGraphicsManager.Current.Allocate(pictureBox.CreateGraphics(), new Rectangle(new Point(0, 0), pictureBox.Size));
+        _graphicalBuffer = BufferedGraphicsManager.Current.Allocate(pictureBox.CreateGraphics(),
+                                                                    new Rectangle(new Point(0, 0), pictureBox.Size));
         _graphicalBuffer.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
         return true;
       }
@@ -206,6 +204,22 @@ namespace GraphicLib.WinForms
     public void Render()
     {
       _graphicalBuffer.Render();
+    }
+
+    /// <summary>
+    /// Clears the cache.
+    /// </summary>
+    public void ClearCache()
+    {
+      //No cache, no clearing
+    }
+
+    /// <summary>
+    /// Removes the image from cache.
+    /// </summary>
+    public void RemoveImageFromCache(Image image)
+    {
+      //No cache, no removing
     }
 
     /// <summary>
