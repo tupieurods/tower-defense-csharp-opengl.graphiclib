@@ -48,12 +48,15 @@
   <ItemGroup>
     <Compile Include="Empty\EmptyGraphics.cs" />
     <Compile Include="OpenGL\DrawActions.cs" />
-    <Compile Include="OpenGL\DrawData.cs" />
+    <Compile Include="OpenGL\EllipseData.cs" />
+    <Compile Include="OpenGL\EllipseShader.cs" />
     <Compile Include="OpenGL\Matrix.cs" />
     <Compile Include="OpenGL\OpenGLGraphic.cs" />
     <Compile Include="OpenGL\ShaderParametrNotFoundException.cs" />
     <Compile Include="OpenGL\ShaderProgram.cs" />
+    <Compile Include="OpenGL\SimpleShader.cs" />
     <Compile Include="OpenGL\Texture.cs" />
+    <Compile Include="OpenGL\TextureShader.cs" />
     <Compile Include="OpenGL\VAO.cs" />
     <Compile Include="OpenGL\VBO.cs" />
     <Compile Include="OpenGL\VBOdata.cs" />

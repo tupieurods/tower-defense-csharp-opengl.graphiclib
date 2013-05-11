@@ -15,7 +15,8 @@ namespace GraphicLib.OpenGL
     public Texture(Bitmap bitmap, bool disposeAfterFirstUse = false)
     {
       GlHandle = GL.GenTexture();
-      Bind();
+      //Bind();
+      GL.BindTexture(TextureTarget.Texture2D, GlHandle);
       DisposeAfterFirstUse = disposeAfterFirstUse;
 
       Width = bitmap.Width;
@@ -36,15 +37,17 @@ namespace GraphicLib.OpenGL
       GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
     }
 
-    public void Bind()
+    public void Bind(TextureUnit textureUnit)
     {
+      GL.ActiveTexture(textureUnit);
       GL.BindTexture(TextureTarget.Texture2D, GlHandle);
     }
 
-    public void UnBind()
+    //Useless
+    /*public void UnBind()
     {
       GL.BindTexture(TextureTarget.Texture2D, 0);
-    }
+    }*/
 
     #region Disposable
 

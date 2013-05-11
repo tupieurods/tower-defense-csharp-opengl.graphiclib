@@ -10,7 +10,7 @@ namespace GraphicLib.OpenGL
     internal float Yc;
     internal float Xr;
     internal float Yr;
-    internal Color color;
-    internal float border;
+    internal Color Color;
+    internal float Border;
   }
 }

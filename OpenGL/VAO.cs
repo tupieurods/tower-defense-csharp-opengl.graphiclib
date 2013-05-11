@@ -15,37 +15,37 @@ namespace GraphicLib.OpenGL
     /// <summary>
     /// VBOs, which associated with this VAO
     /// </summary>
-    private readonly Dictionary<VBOdata, VBO> VBOobjects = new Dictionary<VBOdata, VBO>();
+    private readonly Dictionary<BufferTarget, VBO> VBOobjects = new Dictionary<BufferTarget, VBO>();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="VAO"/> class.
     /// </summary>
-    /// <param name="VBOtypes">The VBO data types.</param>
+    /// <param name="bufferTargets">The VBO data types.</param>
     /// <param name="VBObufferUsageHint">The VBO buffer usage hint.</param>
     /// <param name="VBOsize">The VBO size.</param>
-    public VAO(VBOdata[] VBOtypes = null, BufferUsageHint VBObufferUsageHint = BufferUsageHint.DynamicDraw,
+    public VAO(BufferTarget[] bufferTargets = null, BufferUsageHint VBObufferUsageHint = BufferUsageHint.DynamicDraw,
                int VBOsize = 0)
     {
       GL.GenVertexArrays(1, out _vao);
       GL.BindVertexArray(_vao);
-      if(VBOtypes != null)
+      if(bufferTargets != null)
       {
-        foreach(var vbotype in VBOtypes.Where(vbotype => !VBOobjects.ContainsKey(vbotype)))
+        foreach(var buffer in bufferTargets.Where(x => !VBOobjects.ContainsKey(x)))
         {
-          VBOobjects.Add(vbotype, new VBO(vbotype, VBObufferUsageHint, VBOsize));
+          VBOobjects.Add(buffer, new VBO(buffer, VBObufferUsageHint, VBOsize));
         }
       }
       GL.BindVertexArray(0);
     }
 
-    internal void Resize(VBOdata VBOtype, int size)
+    internal void Resize(BufferTarget bufferTarget, int size)
     {
-      if(!VBOexists(VBOtype))
+      if(!VBOexists(bufferTarget))
       {
-        VBOobjects.Add(VBOtype, new VBO(VBOtype));
+        VBOobjects.Add(bufferTarget, new VBO(bufferTarget));
       }
       Bind();
-      VBOobjects[VBOtype].Resize(size);
+      VBOobjects[bufferTarget].Resize(size);
       UnBind();
     }
 
@@ -54,18 +54,18 @@ namespace GraphicLib.OpenGL
     /// <summary>
     /// Changes stored data
     /// </summary>
-    /// <param name="VBOtype">The VBO type in VAO.</param>
+    /// <param name="bufferTarget">The VBO type in VAO.</param>
     /// <param name="dataBuffer">The vertex buffer.</param>
     /// <param name="offset">Buffer offset </param>
     /// <returns>True if data changes successful</returns>
-    internal bool ChangeData(VBOdata VBOtype, float[] dataBuffer, int offset = 0)
+    internal bool ChangeData(BufferTarget bufferTarget, float[] dataBuffer, int offset = 0)
     {
-      if(!VBOexists(VBOtype))
+      if(!VBOexists(bufferTarget))
       {
-        VBOobjects.Add(VBOtype, new VBO(VBOtype));
+        VBOobjects.Add(bufferTarget, new VBO(bufferTarget));
       }
       Bind();
-      bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
+      bool result = VBOobjects[bufferTarget].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
       return result;
     }
@@ -73,31 +73,31 @@ namespace GraphicLib.OpenGL
     /// <summary>
     /// Changes stored data
     /// </summary>
-    /// <param name="VBOtype">The VBO type in VAO.</param>
+    /// <param name="bufferTarget">The VBO type in VAO.</param>
     /// <param name="dataBuffer">The vertex buffer.</param>
     /// <param name="offset">Buffer offset </param>
     /// <returns>True if data changes successful</returns>
-    internal bool ChangeData(VBOdata VBOtype, float[,] dataBuffer, int offset = 0)
+    internal bool ChangeData(BufferTarget bufferTarget, float[,] dataBuffer, int offset = 0)
     {
-      if(!VBOexists(VBOtype))
+      if(!VBOexists(bufferTarget))
       {
-        VBOobjects.Add(VBOtype, new VBO(VBOtype));
+        VBOobjects.Add(bufferTarget, new VBO(bufferTarget));
       }
       Bind();
-      bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
+      bool result = VBOobjects[bufferTarget].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
       return result;
     }
 
     //ForDebugOnly
-    internal bool ChangeData(VBOdata VBOtype, double[] dataBuffer, int offset = 0)
+    internal bool ChangeData(BufferTarget bufferTarget, double[] dataBuffer, int offset = 0)
     {
-      if(!VBOexists(VBOtype))
+      if(!VBOexists(bufferTarget))
       {
-        VBOobjects.Add(VBOtype, new VBO(VBOtype));
+        VBOobjects.Add(bufferTarget, new VBO(bufferTarget));
       }
       Bind();
-      bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
+      bool result = VBOobjects[bufferTarget].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
       return result;
     }
@@ -105,18 +105,18 @@ namespace GraphicLib.OpenGL
     /// <summary>
     /// Changes stored data
     /// </summary>
-    /// <param name="VBOtype">The VBO type in VAO.</param>
+    /// <param name="bufferTarget">The VBO type in VAO.</param>
     /// <param name="dataBuffer">The vertex buffer.</param>
     /// <param name="offset">Buffer offset </param>
     /// <returns>True if data changes successful</returns>
-    internal bool ChangeData(VBOdata VBOtype, uint[] dataBuffer, int offset = 0)
+    internal bool ChangeData(BufferTarget bufferTarget, uint[] dataBuffer, int offset = 0)
     {
-      if(!VBOexists(VBOtype))
+      if(!VBOexists(bufferTarget))
       {
-        VBOobjects.Add(VBOtype, new VBO(VBOtype));
+        VBOobjects.Add(bufferTarget, new VBO(bufferTarget));
       }
       Bind();
-      bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
+      bool result = VBOobjects[bufferTarget].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
       return result;
     }
@@ -124,18 +124,18 @@ namespace GraphicLib.OpenGL
     /// <summary>
     /// Changes stored data
     /// </summary>
-    /// <param name="VBOtype">The VBO type in VAO.</param>
+    /// <param name="bufferTarget">The VBO type in VAO.</param>
     /// <param name="dataBuffer">The vertex buffer.</param>
     /// <param name="offset">Buffer offset </param>
     /// <returns>True if data changes successful</returns>
-    internal bool ChangeData(VBOdata VBOtype, int[] dataBuffer, int offset = 0)
+    internal bool ChangeData(BufferTarget bufferTarget, int[] dataBuffer, int offset = 0)
     {
-      if(!VBOexists(VBOtype))
+      if(!VBOexists(bufferTarget))
       {
-        VBOobjects.Add(VBOtype, new VBO(VBOtype));
+        VBOobjects.Add(bufferTarget, new VBO(bufferTarget));
       }
       Bind();
-      bool result = VBOobjects[VBOtype].ChangeDataInVBO(dataBuffer, offset);
+      bool result = VBOobjects[bufferTarget].ChangeDataInVBO(dataBuffer, offset);
       UnBind();
       return result;
     }
@@ -145,11 +145,11 @@ namespace GraphicLib.OpenGL
     /// <summary>
     /// Checks, have we VBO with specified data or not
     /// </summary>
-    /// <param name="VBOtype">The VBO type.</param>
+    /// <param name="bufferTarget">The VBO type.</param>
     /// <returns>True, if we have VBO with specified data</returns>
-    internal bool VBOexists(VBOdata VBOtype)
+    internal bool VBOexists(BufferTarget bufferTarget)
     {
-      return VBOobjects.ContainsKey(VBOtype);
+      return VBOobjects.ContainsKey(bufferTarget);
     }
 
     #region VAO binders
@@ -173,29 +173,29 @@ namespace GraphicLib.OpenGL
     /// <summary>
     /// Binds VAO with specified VBO.
     /// </summary>
-    /// <param name="VBOtype">The VBO type.</param>
-    internal void BindWithVBO(VBOdata VBOtype)
+    /// <param name="bufferTarget">The VBO type.</param>
+    internal void BindWithVBO(BufferTarget bufferTarget)
     {
-      if(!VBOobjects.ContainsKey(VBOtype))
+      if(!VBOobjects.ContainsKey(bufferTarget))
       {
-        throw new ArgumentException("VBOtype");
+        throw new ArgumentException("bufferTarget");
       }
       GL.BindVertexArray(_vao);
-      VBOobjects[VBOtype].Bind();
+      VBOobjects[bufferTarget].Bind();
     }
 
     /// <summary>
     /// Unbinds VAO with specified VBO.
     /// </summary>
-    /// <param name="VBOtype">The VBO type.</param>
-    internal void UnBindWithVBO(VBOdata VBOtype)
+    /// <param name="bufferTarget">The VBO type.</param>
+    internal void UnBindWithVBO(BufferTarget bufferTarget)
     {
-      if(!VBOobjects.ContainsKey(VBOtype))
+      if(!VBOobjects.ContainsKey(bufferTarget))
       {
-        throw new ArgumentException("VBOtype");
+        throw new ArgumentException("bufferTarget");
       }
       GL.BindVertexArray(0);
-      VBOobjects[VBOtype].UnBind();
+      VBOobjects[bufferTarget].UnBind();
     }
 
     #endregion

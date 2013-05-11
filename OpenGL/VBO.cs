@@ -35,13 +35,13 @@ namespace GraphicLib.OpenGL
     /// <summary>
     /// Initializes a new instance of the <see cref="VBO"/> class.
     /// </summary>
-    /// <param name="VBOtype">Logical type of data in VBO</param>
+    /// <param name="bufferTarget">Logical type of data in VBO</param>
     /// <param name="bufferUsageHint">The buffer usage hint.</param>
     /// <param name="size">The size.</param>
-    internal VBO(VBOdata VBOtype, BufferUsageHint bufferUsageHint = BufferUsageHint.DynamicDraw, int size = 0)
+    internal VBO(BufferTarget bufferTarget, BufferUsageHint bufferUsageHint = BufferUsageHint.DynamicDraw, int size = 0)
     {
       GL.GenBuffers(1, out _vbo);
-      _bufferTarget = GetBufferTargetByType(VBOtype);
+      _bufferTarget = bufferTarget;
       GL.BindBuffer(_bufferTarget, _vbo);
       GL.BufferData(_bufferTarget, new IntPtr(size), new IntPtr(0), bufferUsageHint);
       GL.BindBuffer(_bufferTarget, 0);
@@ -175,30 +175,6 @@ namespace GraphicLib.OpenGL
     }
 
     #endregion
-
-    /// <summary>
-    /// Get the type of buffer for the data type
-    /// </summary>
-    /// <param name="VBOtype">The VBO data type.</param>
-    /// <returns></returns>
-    private static BufferTarget GetBufferTargetByType(VBOdata VBOtype)
-    {
-      BufferTarget result;
-      switch(VBOtype)
-      {
-        case VBOdata.Positions:
-        case VBOdata.Color:
-        case VBOdata.TextureCoord:
-          result = BufferTarget.ArrayBuffer;
-          break;
-        case VBOdata.Index:
-          result = BufferTarget.ElementArrayBuffer;
-          break;
-        default:
-          throw new ArgumentOutOfRangeException("VBOtype");
-      }
-      return result;
-    }
 
     #region Implementation of IDisposable
 

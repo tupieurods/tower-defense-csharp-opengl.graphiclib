@@ -1,12 +1,10 @@
 #version 330 core
 
-uniform vec4 fragmentColor;
+in vec4 fragmentColor;
 out vec4 color;
 void main(void)
 {
-  if(fragmentColor.a==0.0)
+  if(fragmentColor.a == 0.0)
     discard;
   color = fragmentColor;
 }
-
-

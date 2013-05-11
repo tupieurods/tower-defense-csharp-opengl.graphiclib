@@ -3,6 +3,7 @@
   internal enum DrawActions
   {
     FillRectangle,
+    Polygon,
     FillEllipse,
     DrawImage,
     DrawString,

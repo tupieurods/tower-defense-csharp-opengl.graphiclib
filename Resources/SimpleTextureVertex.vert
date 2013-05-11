@@ -11,5 +11,5 @@ void main(void)
 {
   gl_Position = projectionMatrix * vec4(position, 0.0, 1.0);
 
-  fragTexcoord=texcoord;
+  fragTexcoord = texcoord;
 }

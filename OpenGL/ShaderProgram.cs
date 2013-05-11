@@ -1,22 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace GraphicLib.OpenGL
 {
-  public class ShaderProgram: IDisposable
+  public abstract class ShaderProgram : IDisposable
   {
     /// <summary>
     /// Shader program id on GPU
     /// </summary>
-    private readonly int _shaderProgram;
+    private readonly int _shaderProgramID;
 
     /// <summary>
     /// VAO, which associated with shader program
     /// </summary>
-    private VAO _vao;
+    protected readonly VAO Vao;
+
+    /// <summary>
+    /// Information about verticies. Should be uploaded to VBO
+    /// </summary>
+    protected readonly List<float> Verticies = new List<float>();
+
+    /// <summary>
+    /// Index of current primitive for drawing
+    /// </summary>
+    protected int CurrentTask;
 
     /// <summary>
     /// Shader attributes locations
@@ -31,68 +40,59 @@ namespace GraphicLib.OpenGL
     /// <summary>
     /// Initializes a new instance of the <see cref="ShaderProgram"/> class.
     /// </summary>
-    /// <param name="vertexShaderSource">The vertex shader source.</param>
-    /// <param name="fragmentShaderSource">The fragment shader source.</param>
-    /// <param name="vao">The vao.</param>
-    public ShaderProgram(byte[] vertexShaderSource, byte[] fragmentShaderSource, VAO vao = null)
+    internal ShaderProgram()
     {
-      _vao = vao;
-      //Вершинный шейдер
-      int vertexShader = GL.CreateShader(ShaderType.VertexShader);
-      string shaderStr = vertexShaderSource.Aggregate("", (current, t) => current + Convert.ToChar(t));
-      GL.ShaderSource(vertexShader, shaderStr);
-      //Фрагментный шейдер
-      int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-      shaderStr = fragmentShaderSource.Aggregate("", (current, t) => current + Convert.ToChar(t));
-      GL.ShaderSource(fragmentShader, shaderStr);
-      //Компиляция
-      GL.CompileShader(vertexShader);
-      int status;
-      GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out status);
-      if(status != 1)
-      {
-        throw new ArgumentException("vertexShaderSource");
-      }
-      GL.CompileShader(fragmentShader);
-      GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out status);
-      if(status != 1)
-      {
-        throw new ArgumentException("fragmentShaderSource");
-      }
-      //Сборка шейдерной программы
-      _shaderProgram = GL.CreateProgram();
-      GL.AttachShader(_shaderProgram, vertexShader);
-      GL.AttachShader(_shaderProgram, fragmentShader);
-      GL.LinkProgram(_shaderProgram);
+      Vao = new VAO();
+      _shaderProgramID = GL.CreateProgram();
     }
 
     /// <summary>
-    /// Attaches the VAO.
+    /// Adds the shader to shader program.
     /// </summary>
-    /// <param name="vao">The vao.</param>
-    public void AttachVAO(VAO vao)
+    /// <param name="shaderType">Type of the shader.</param>
+    /// <param name="shaderSource">The shader source.</param>
+    /// <returns></returns>
+    protected bool AddShader(ShaderType shaderType, string shaderSource)
     {
-      _vao = vao;
+      int shader = GL.CreateShader(shaderType);
+      GL.ShaderSource(shader, shaderSource);
+      GL.CompileShader(shader);
+      int status;
+      GL.GetShader(shader, ShaderParameter.CompileStatus, out status);
+      if(status == 1)
+      {
+        GL.AttachShader(_shaderProgramID, shader);
+        return true;
+      }
+      return false;
+    }
+
+    /// <summary>
+    /// Links the shader program.
+    /// </summary>
+    protected void LinkShaderProgram()
+    {
+      GL.LinkProgram(_shaderProgramID);
     }
 
     /// <summary>
     /// Changes the attribute.
     /// </summary>
-    /// <param name="VBOtype">The VBO type.</param>
+    /// <param name="bufferTarget">The VBO type.</param>
     /// <param name="attributeName">Name of the attribute.</param>
     /// <param name="size">The size.</param>
     /// <param name="type">The type.</param>
     /// <param name="normalized">if set to <c>true</c> [normalized].</param>
     /// <param name="stride">The stride.</param>
     /// <param name="offset">The offset.</param>
-    public void ChangeAttribute(VBOdata VBOtype, string attributeName, int size, VertexAttribPointerType type,
+    protected void ChangeAttribute(BufferTarget bufferTarget, string attributeName, int size, VertexAttribPointerType type,
                                 bool normalized, int stride, int offset)
     {
-      _vao.BindWithVBO(VBOtype);
+      Vao.BindWithVBO(bufferTarget);
 
       if(!_attribLocations.ContainsKey(attributeName))
       {
-        _attribLocations.Add(attributeName, GL.GetAttribLocation(_shaderProgram, attributeName));
+        _attribLocations.Add(attributeName, GL.GetAttribLocation(_shaderProgramID, attributeName));
       }
       int attributeLocation = _attribLocations[attributeName];
       if(attributeLocation != -1)
@@ -104,187 +104,324 @@ namespace GraphicLib.OpenGL
       {
         throw new ShaderParametrNotFoundException();
       }
-      _vao.UnBindWithVBO(VBOtype);
-    }
-
-    public void Resize(VBOdata VBOtype, int size)
-    {
-      _vao.Resize(VBOtype, size);
-    }
-
-    /// <summary>
-    /// Changes the data in VAO
-    /// </summary>
-    /// <param name="VBOtype">The VBO type.</param>
-    /// <param name="buffer">The buffer.</param>
-    /// <param name="offset">Buffer offset </param>
-    /// <returns></returns>
-    public bool ChangeData(VBOdata VBOtype, float[] buffer, int offset = 0)
-    {
-      bool result = _vao.ChangeData(VBOtype, buffer, offset);
-      return result;
-    }
-
-    /// <summary>
-    /// Changes the data in VAO
-    /// </summary>
-    /// <param name="VBOtype">The VBO type.</param>
-    /// <param name="buffer">The buffer.</param>
-    /// <param name="offset">Buffer offset </param>
-    /// <returns></returns>
-    public bool ChangeData(VBOdata VBOtype, float[,] buffer, int offset = 0)
-    {
-      bool result = _vao.ChangeData(VBOtype, buffer, offset);
-      return result;
-    }
-
-    //ForDebugOnly
-    public bool ChangeData(VBOdata VBOtype, double[] buffer, int offset = 0)
-    {
-      bool result = _vao.ChangeData(VBOtype, buffer, offset);
-      return result;
-    }
-
-    /// <summary>
-    /// Changes the data in VAO
-    /// </summary>
-    /// <param name="VBOtype">The VBO type.</param>
-    /// <param name="buffer">The buffer.</param>
-    /// <param name="offset">Buffer offset </param>
-    /// <returns></returns>
-    public bool ChangeData(VBOdata VBOtype, int[] buffer, int offset = 0)
-    {
-      bool result = _vao.ChangeData(VBOtype, buffer, offset);
-      return result;
-    }
-
-    /// <summary>
-    /// Changes the data in VAO
-    /// </summary>
-    /// <param name="VBOtype">The VBO type.</param>
-    /// <param name="buffer">The buffer.</param>
-    /// <param name="offset">Buffer offset </param>
-    /// <returns></returns>
-    public bool ChangeData(VBOdata VBOtype, uint[] buffer, int offset = 0)
-    {
-      bool result = _vao.ChangeData(VBOtype, buffer, offset);
-      return result;
+      Vao.UnBindWithVBO(bufferTarget);
     }
 
     /// <summary>
     /// Sets this shader program as active on GPU
     /// </summary>
-    public void UseProgram()
+    private void StartUseProgram()
     {
-      GL.UseProgram(_shaderProgram);
+      GL.UseProgram(_shaderProgramID);
     }
 
     /// <summary>
     /// Sets this shader program as inactive on GPU
     /// </summary>
-    public static void StopUseProgram()
+    private static void StopUseProgram()
     {
       GL.UseProgram(0);
     }
 
     /// <summary>
-    /// Uniforms the matrix4.
+    /// Uploads the data to GPU.
     /// </summary>
-    /// <param name="matrixName">Name of the matrix.</param>
+    public abstract void UploadDataToGPU();
+
+    /// <summary>
+    /// Draws next primitive
+    /// </summary>
+    public abstract void DrawNext();
+
+    /// <summary>
+    /// Clears this instance.
+    /// </summary>
+    public void Clear()
+    {
+      CurrentTask = 0;
+      Verticies.Clear();
+    }
+
+    /// <summary>
+    /// Upload 4x4 matrix to gpu
+    /// </summary>
+    /// <param name="matrixName">Name of the matrix in shader</param>
     /// <param name="matrix">The matrix.</param>
     /// <param name="transpose">if set to <c>true</c> [transpose].</param>
-    public void UniformMatrix4(string matrixName, float[] matrix, bool transpose)
-    {
-      UseProgram();
-      int projectionMatrixLocation = GL.GetUniformLocation(_shaderProgram, matrixName);
-      if(projectionMatrixLocation != -1)
-      {
-        GL.UniformMatrix4(projectionMatrixLocation, 1, transpose, matrix);
-      }
-      else
-      {
-        throw new ShaderParametrNotFoundException();
-      }
-      StopUseProgram();
-    }
-
     public void UniformMatrix4(string matrixName, Matrix4 matrix, bool transpose)
     {
-      UseProgram();
-      int projectionMatrixLocation = GL.GetUniformLocation(_shaderProgram, matrixName);
-      if(projectionMatrixLocation != -1)
-      {
-        GL.UniformMatrix4(projectionMatrixLocation, transpose, ref matrix);
-      }
-      else
-      {
-        throw new ShaderParametrNotFoundException();
-      }
+      StartUseProgram();
+      GL.UniformMatrix4(GetUniformLocation(matrixName), transpose, ref matrix);
       StopUseProgram();
     }
 
-    #region Uniform1234
-
+    /// <summary>
+    /// Gets the uniform location from gpu or from cache
+    /// </summary>
+    /// <param name="parametrName">Name of the parametr.</param>
+    /// <returns></returns>
     private int GetUniformLocation(string parametrName)
     {
       if(!_uniformLocations.ContainsKey(parametrName))
       {
-        _uniformLocations.Add(parametrName, GL.GetUniformLocation(_shaderProgram, parametrName));
-        if(_uniformLocations[parametrName] == -1)
-        {
-          throw new ShaderParametrNotFoundException();
-        }
+        _uniformLocations.Add(parametrName, GL.GetUniformLocation(_shaderProgramID, parametrName));
+      }
+      if(_uniformLocations[parametrName] == -1)
+      {
+        throw new ShaderParametrNotFoundException();
       }
       return _uniformLocations[parametrName];
     }
 
+    #region Uniform1
+
     public void Uniform1(string parametrName, float value)
     {
-      UseProgram();
+      StartUseProgram();
       GL.Uniform1(GetUniformLocation(parametrName), value);
       StopUseProgram();
     }
 
-    //ForDebugOnly
     public void Uniform1(string parametrName, double value)
     {
-      UseProgram();
+      StartUseProgram();
       GL.Uniform1(GetUniformLocation(parametrName), value);
       StopUseProgram();
     }
 
-    public void Uniform2(string parametrName, Vector2 value)
+    public void Uniform1(string parametrName, int value)
     {
-      UseProgram();
+      StartUseProgram();
+      GL.Uniform1(GetUniformLocation(parametrName), value);
+      StopUseProgram();
+    }
+
+    public void Uniform1(string parametrName, uint value)
+    {
+      StartUseProgram();
+      GL.Uniform1(GetUniformLocation(parametrName), value);
+      StopUseProgram();
+    }
+
+    #endregion
+
+    #region Uniform2
+
+    protected void Uniform2(string parametrName, Vector2 value)
+    {
+      StartUseProgram();
       GL.Uniform2(GetUniformLocation(parametrName), value);
       StopUseProgram();
     }
 
-    public void Uniform3(string parametrName, Vector3 value)
+    protected void Uniform2(string parametrName, ref Vector2 value)
     {
-      UseProgram();
+      StartUseProgram();
+      GL.Uniform2(GetUniformLocation(parametrName), ref value);
+      StopUseProgram();
+    }
+
+    protected void Uniform2(string parametrName, double x, double y)
+    {
+      StartUseProgram();
+      GL.Uniform2(GetUniformLocation(parametrName), x, y);
+      StopUseProgram();
+    }
+
+    protected void Uniform2(string parametrName, float x, float y)
+    {
+      StartUseProgram();
+      GL.Uniform2(GetUniformLocation(parametrName), x, y);
+      StopUseProgram();
+    }
+
+    protected void Uniform2(string parametrName, uint v0, uint v1)
+    {
+      StartUseProgram();
+      GL.Uniform2(GetUniformLocation(parametrName), v0, v1);
+      StopUseProgram();
+    }
+
+    protected void Uniform2(string parametrName, int v0, int v1)
+    {
+      StartUseProgram();
+      GL.Uniform2(GetUniformLocation(parametrName), v0, v1);
+      StopUseProgram();
+    }
+
+    protected void Uniform2(string parametrName, int count, float[] value)
+    {
+      StartUseProgram();
+      GL.Uniform2(GetUniformLocation(parametrName), count, value);
+      StopUseProgram();
+    }
+
+    protected void Uniform2(string parametrName, int count, double[] value)
+    {
+      StartUseProgram();
+      GL.Uniform2(GetUniformLocation(parametrName), count, value);
+      StopUseProgram();
+    }
+
+    protected void Uniform2(string parametrName, int count, int[] value)
+    {
+      StartUseProgram();
+      GL.Uniform2(GetUniformLocation(parametrName), count, value);
+      StopUseProgram();
+    }
+
+    protected void Uniform2(string parametrName, int count, uint[] value)
+    {
+      StartUseProgram();
+      GL.Uniform2(GetUniformLocation(parametrName), count, value);
+      StopUseProgram();
+    }
+
+    #endregion
+
+    #region Uniform3
+
+    protected void Uniform3(string parametrName, Vector3 value)
+    {
+      StartUseProgram();
       GL.Uniform3(GetUniformLocation(parametrName), value);
       StopUseProgram();
     }
 
-    public void Uniform3(string parametrName, int count, float[] value)
+    protected void Uniform3(string parametrName, ref Vector3 value)
     {
-      UseProgram();
+      StartUseProgram();
+      GL.Uniform3(GetUniformLocation(parametrName), ref value);
+      StopUseProgram();
+    }
+
+    protected void Uniform3(string parametrName, double x, double y, double z)
+    {
+      StartUseProgram();
+      GL.Uniform3(GetUniformLocation(parametrName), x, y, z);
+      StopUseProgram();
+    }
+
+    protected void Uniform3(string parametrName, float x, float y, float z)
+    {
+      StartUseProgram();
+      GL.Uniform3(GetUniformLocation(parametrName), x, y, z);
+      StopUseProgram();
+    }
+
+    protected void Uniform3(string parametrName, uint v0, uint v1, uint v2)
+    {
+      StartUseProgram();
+      GL.Uniform3(GetUniformLocation(parametrName), v0, v1, v2);
+      StopUseProgram();
+    }
+
+    protected void Uniform3(string parametrName, int v0, int v1, int v2)
+    {
+      StartUseProgram();
+      GL.Uniform3(GetUniformLocation(parametrName), v0, v1, v2);
+      StopUseProgram();
+    }
+
+    protected void Uniform3(string parametrName, int count, float[] value)
+    {
+      StartUseProgram();
       GL.Uniform3(GetUniformLocation(parametrName), count, value);
       StopUseProgram();
     }
 
-    public void Uniform4(string parametrName, Vector4 value)
+    protected void Uniform3(string parametrName, int count, double[] value)
     {
-      UseProgram();
+      StartUseProgram();
+      GL.Uniform3(GetUniformLocation(parametrName), count, value);
+      StopUseProgram();
+    }
+
+    protected void Uniform3(string parametrName, int count, int[] value)
+    {
+      StartUseProgram();
+      GL.Uniform3(GetUniformLocation(parametrName), count, value);
+      StopUseProgram();
+    }
+
+    protected void Uniform3(string parametrName, int count, uint[] value)
+    {
+      StartUseProgram();
+      GL.Uniform3(GetUniformLocation(parametrName), count, value);
+      StopUseProgram();
+    }
+
+    #endregion
+
+    #region Uniform4
+
+    protected void Uniform4(string parametrName, Vector4 value)
+    {
+      StartUseProgram();
       GL.Uniform4(GetUniformLocation(parametrName), value);
       StopUseProgram();
     }
 
-    public void Uniform4(string parametrName, float v0, float v1, float v2, float v3)
+    protected void Uniform4(string parametrName, ref Vector4 value)
     {
-      UseProgram();
+      StartUseProgram();
+      GL.Uniform4(GetUniformLocation(parametrName), ref value);
+      StopUseProgram();
+    }
+
+    protected void Uniform4(string parametrName, double x, double y, double z, double w)
+    {
+      StartUseProgram();
+      GL.Uniform4(GetUniformLocation(parametrName), x, y, z, w);
+      StopUseProgram();
+    }
+
+    protected void Uniform4(string parametrName, float x, float y, float z, float w)
+    {
+      StartUseProgram();
+      GL.Uniform4(GetUniformLocation(parametrName), x, y, z, w);
+      StopUseProgram();
+    }
+
+    protected void Uniform4(string parametrName, uint v0, uint v1, uint v2, uint v3)
+    {
+      StartUseProgram();
       GL.Uniform4(GetUniformLocation(parametrName), v0, v1, v2, v3);
+      StopUseProgram();
+    }
+
+    protected void Uniform4(string parametrName, int v0, int v1, int v2, int v3)
+    {
+      StartUseProgram();
+      GL.Uniform4(GetUniformLocation(parametrName), v0, v1, v2, v3);
+      StopUseProgram();
+    }
+
+    protected void Uniform4(string parametrName, int count, float[] value)
+    {
+      StartUseProgram();
+      GL.Uniform4(GetUniformLocation(parametrName), count, value);
+      StopUseProgram();
+    }
+
+    protected void Uniform4(string parametrName, int count, double[] value)
+    {
+      StartUseProgram();
+      GL.Uniform4(GetUniformLocation(parametrName), count, value);
+      StopUseProgram();
+    }
+
+    protected void Uniform4(string parametrName, int count, int[] value)
+    {
+      StartUseProgram();
+      GL.Uniform4(GetUniformLocation(parametrName), count, value);
+      StopUseProgram();
+    }
+
+    protected void Uniform4(string parametrName, int count, uint[] value)
+    {
+      StartUseProgram();
+      GL.Uniform4(GetUniformLocation(parametrName), count, value);
       StopUseProgram();
     }
 
@@ -296,12 +433,12 @@ namespace GraphicLib.OpenGL
     /// <param name="mode">The mode.</param>
     /// <param name="first">The first.</param>
     /// <param name="count">The count.</param>
-    public void DrawArrays(BeginMode mode, int first, int count)
+    protected void DrawArrays(BeginMode mode, int first, int count)
     {
-      UseProgram();
-      _vao.Bind();
+      StartUseProgram();
+      Vao.Bind();
       GL.DrawArrays(mode, first, count);
-      _vao.UnBind();
+      Vao.UnBind();
       StopUseProgram();
     }
 
@@ -311,16 +448,16 @@ namespace GraphicLib.OpenGL
     /// <param name="mode">The mode.</param>
     /// <param name="count">The count.</param>
     /// <param name="type">The type.</param>
-    public void DrawElements(BeginMode mode, int count, DrawElementsType type = DrawElementsType.UnsignedInt)
+    protected void DrawElements(BeginMode mode, int count, DrawElementsType type = DrawElementsType.UnsignedInt)
     {
-      if(!_vao.VBOexists(VBOdata.Index))
+      if(!Vao.VBOexists(BufferTarget.ElementArrayBuffer))
       {
         throw new VBONotFoundException("Index VBO not found");
       }
-      UseProgram();
-      _vao.BindWithVBO(VBOdata.Index);
+      StartUseProgram();
+      Vao.BindWithVBO(BufferTarget.ElementArrayBuffer);
       GL.DrawElements(mode, count, type, IntPtr.Zero);
-      _vao.UnBindWithVBO(VBOdata.Index);
+      Vao.UnBindWithVBO(BufferTarget.ElementArrayBuffer);
       StopUseProgram();
     }
 
@@ -332,8 +469,8 @@ namespace GraphicLib.OpenGL
     /// <filterpriority>2</filterpriority>
     public void Dispose()
     {
-      _vao.Dispose();
-      GL.DeleteProgram(_shaderProgram);
+      Vao.Dispose();
+      GL.DeleteProgram(_shaderProgramID);
     }
 
     #endregion
