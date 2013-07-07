@@ -8,8 +8,8 @@ namespace GraphicLib.OpenGL
   public sealed class Texture: IDisposable
   {
     public int GlHandle { get; private set; }
-    private int Width { get; set; }
-    private int Height { get; set; }
+    public int Width { get; set; }
+    public int Height { get; set; }
     internal bool DisposeAfterFirstUse { get; private set; }
 
     public Texture(Bitmap bitmap, bool disposeAfterFirstUse = false)
@@ -42,12 +42,6 @@ namespace GraphicLib.OpenGL
       GL.ActiveTexture(textureUnit);
       GL.BindTexture(TextureTarget.Texture2D, GlHandle);
     }
-
-    //Useless
-    /*public void UnBind()
-    {
-      GL.BindTexture(TextureTarget.Texture2D, 0);
-    }*/
 
     #region Disposable
 

@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using GraphicLib.OpenGL.Fonts;
 using OpenTK.Graphics.OpenGL;
 
-namespace GraphicLib.OpenGL
+namespace GraphicLib.OpenGL.Shaders
 {
-  public sealed class TextureShader: ShaderProgram
+  class FontShader: ShaderProgram
   {
-    private readonly List<Texture> _textures = new List<Texture>();
-
-    public TextureShader()
+    public FontShader()
     {
       byte[] shaderByteSource = Properties.Resources.SimpleTextureVertex;
       string shaderStr = shaderByteSource.Aggregate("", (current, t) => current + Convert.ToChar(t));
@@ -24,22 +24,8 @@ namespace GraphicLib.OpenGL
         throw new Exception("Cannot create fragment shader");
       }
       LinkShaderProgram();
-      this.Vao.Resize(BufferTarget.ArrayBuffer, 1000);
-    }
-
-    public void AddTask(Texture texture, IList<float> positions)
-    {
-      if(positions.Count != 16)
-      {
-        throw new ArgumentException("Positions array should have 16 elements");
-      }
-      _textures.Add(texture);
-      Verticies.AddRange(positions);
-    }
-
-    public void AddTexture(Texture texture)
-    {
-      _textures.Add(texture);
+      this.Vao.Resize(BufferTarget.ArrayBuffer, 10000);
+      this.Uniform1("Texture", 3);
     }
 
     public void AddVertex(float x, float y, float texCoord1, float texCoord2)
@@ -50,32 +36,31 @@ namespace GraphicLib.OpenGL
       Verticies.Add(texCoord2);
     }
 
-    public new void Clear()
+    public void Bind()
     {
-      base.Clear();
-      _textures.Clear();
+      FontManager.FontTexture.Bind(TextureUnit.Texture3);
     }
 
     #region Overrides of ShaderProgram
 
+    /// <summary>
+    /// Uploads the data to GPU.
+    /// </summary>
     public override void UploadDataToGPU()
     {
       Vao.ChangeData(BufferTarget.ArrayBuffer, Verticies.ToArray());
       this.ChangeAttribute(BufferTarget.ArrayBuffer, "position", 2,
-                           VertexAttribPointerType.Float, false, 4 * sizeof(float), 0);
+                           VertexAttribPointerType.Float, true, 4 * sizeof(float), 0);
       this.ChangeAttribute(BufferTarget.ArrayBuffer, "texcoord", 2,
                            VertexAttribPointerType.Float, true, 4 * sizeof(float), 2 * sizeof(float));
     }
 
+    /// <summary>
+    /// Draws next primitive
+    /// </summary>
     public override void DrawNext()
     {
-      _textures[CurrentTask].Bind(TextureUnit.Texture1);
-      this.Uniform1("Texture", 1);
-      this.DrawArrays(BeginMode.Polygon, 4 * CurrentTask, 4);
-      if(_textures[CurrentTask].DisposeAfterFirstUse)
-      {
-        _textures[CurrentTask].Dispose();
-      }
+      this.DrawArrays(BeginMode.Triangles, 6 * CurrentTask, 6);
       CurrentTask++;
     }
 

@@ -31,6 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL" />
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Dll сборка\OpenTK\OpenTK.dll</HintPath>
@@ -47,20 +48,25 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Empty\EmptyGraphics.cs" />
+    <Compile Include="OpenGL\MyCharCharComparer.cs" />
     <Compile Include="OpenGL\DrawActions.cs" />
     <Compile Include="OpenGL\EllipseData.cs" />
-    <Compile Include="OpenGL\EllipseShader.cs" />
+    <Compile Include="OpenGL\Fonts\FontInfo.cs" />
+    <Compile Include="OpenGL\Fonts\FontManager.cs" />
+    <Compile Include="OpenGL\Fonts\MyFont.cs" />
+    <Compile Include="OpenGL\Shaders\EllipseShader.cs" />
     <Compile Include="OpenGL\Matrix.cs" />
     <Compile Include="OpenGL\OpenGLGraphic.cs" />
-    <Compile Include="OpenGL\ShaderParametrNotFoundException.cs" />
-    <Compile Include="OpenGL\ShaderProgram.cs" />
-    <Compile Include="OpenGL\SimpleShader.cs" />
+    <Compile Include="OpenGL\Shaders\FontShader.cs" />
+    <Compile Include="OpenGL\Shaders\ShaderParametrNotFoundException.cs" />
+    <Compile Include="OpenGL\Shaders\ShaderProgram.cs" />
+    <Compile Include="OpenGL\Shaders\SimpleShader.cs" />
     <Compile Include="OpenGL\Texture.cs" />
-    <Compile Include="OpenGL\TextureShader.cs" />
-    <Compile Include="OpenGL\VAO.cs" />
-    <Compile Include="OpenGL\VBO.cs" />
-    <Compile Include="OpenGL\VBOdata.cs" />
-    <Compile Include="OpenGL\VBONotFoundException.cs" />
+    <Compile Include="OpenGL\Shaders\TextureShader.cs" />
+    <Compile Include="OpenGL\VaoAndVbo\VAO.cs" />
+    <Compile Include="OpenGL\VaoAndVbo\VBO.cs" />
+    <Compile Include="OpenGL\VaoAndVbo\VBOdata.cs" />
+    <Compile Include="OpenGL\VaoAndVbo\VBONotFoundException.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -86,6 +92,7 @@
   <ItemGroup>
     <Content Include="License.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

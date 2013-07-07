@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using GraphicLib.Interfaces;
+using GraphicLib.OpenGL.Fonts;
+using GraphicLib.OpenGL.Shaders;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using EnableCap = OpenTK.Graphics.OpenGL.EnableCap;
@@ -30,10 +32,14 @@ namespace GraphicLib.OpenGL
     /// Simple shader for drawing polygons
     /// </summary>
     private readonly SimpleShader _polygonShader;
+
     /// <summary>
     /// Simple shader for drawing textures
     /// </summary>
     private readonly TextureShader _textureShader;
+
+    private readonly FontShader _fontShader;
+
     /// <summary>
     /// Shader for ellipse drawing and filling
     /// </summary>
@@ -45,6 +51,8 @@ namespace GraphicLib.OpenGL
     /// Rendering order action
     /// </summary>
     private readonly List<DrawActions> _actions = new List<DrawActions>();
+
+    private readonly List<int> _stringLens = new List<int>();
 
     /// <summary>
     /// Clipping area rectangles
@@ -60,9 +68,11 @@ namespace GraphicLib.OpenGL
 
     public OpenGLGraphic(Size windowSize)
     {
+      FontManager.LoadFonts(Environment.CurrentDirectory + @"\Data\Fonts\");
       _polygonShader = new SimpleShader();
       _textureShader = new TextureShader();
       _ellipseShader = new EllipseShader();
+      _fontShader = new FontShader();
       Resize(windowSize.Width, windowSize.Height, 1.0f);
     }
 
@@ -122,6 +132,7 @@ namespace GraphicLib.OpenGL
       _polygonShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
       _textureShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
       _ellipseShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
+      _fontShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
       _ellipseShader.WindowHeight = _windowSize.Height;
       return true;
     }
@@ -198,6 +209,47 @@ namespace GraphicLib.OpenGL
     /// <param name="point">The point.</param>
     public void DrawString(string s, Font font, Brush brush, PointF point)
     {
+      MyFont myFont = FontManager.GetFont(FontManager.FindClosestFont(font));
+      string[] lines = s.Split('\n');
+      float k = (font.SizeInPoints / myFont.FontInfo.Pt);
+      int glyphHeight = (int)(k * myFont.FontInfo.Height);
+      int realStrLen = 0;
+      foreach(string str in lines)
+      {
+        int strLen = str.Length;
+        realStrLen += strLen;
+        float x = point.X;
+        for(int j = 0; j < strLen; j++)
+        {
+          if(!myFont.Symbols.ContainsKey(str[j]))
+          {
+            realStrLen--;
+            continue;
+          }
+          //Верхний треугольник
+          _fontShader.AddVertex(x, point.Y + (glyphHeight - myFont.Symbols[str[j]].Height * k), myFont.Symbols[str[j]].X, myFont.Symbols[str[j]].Y);
+          _fontShader.AddVertex(x + myFont.Symbols[str[j]].Width * k, point.Y + (glyphHeight - myFont.Symbols[str[j]].Height * k),
+                                myFont.Symbols[str[j]].X + FontManager.TextureXCoord(myFont.Symbols[str[j]].Width),
+                                myFont.Symbols[str[j]].Y);
+          _fontShader.AddVertex(x, point.Y + myFont.Symbols[str[j]].Height * k + (glyphHeight - myFont.Symbols[str[j]].Height * k),
+                                myFont.Symbols[str[j]].X,
+                                myFont.Symbols[str[j]].Y + FontManager.TextureYCoord(myFont.Symbols[str[j]].Height));
+          //Нижний треугольник
+          _fontShader.AddVertex(x + myFont.Symbols[str[j]].Width * k, point.Y + (glyphHeight - myFont.Symbols[str[j]].Height * k),
+                                myFont.Symbols[str[j]].X + FontManager.TextureXCoord(myFont.Symbols[str[j]].Width),
+                                myFont.Symbols[str[j]].Y);
+          _fontShader.AddVertex(x + myFont.Symbols[str[j]].Width * k, point.Y + myFont.Symbols[str[j]].Height * k + (glyphHeight - myFont.Symbols[str[j]].Height * k),
+                                myFont.Symbols[str[j]].X + FontManager.TextureXCoord(myFont.Symbols[str[j]].Width),
+                                myFont.Symbols[str[j]].Y + FontManager.TextureYCoord(myFont.Symbols[str[j]].Height));
+          _fontShader.AddVertex(x, point.Y + myFont.Symbols[str[j]].Height * k + (glyphHeight - myFont.Symbols[str[j]].Height * k),
+                                myFont.Symbols[str[j]].X,
+                                myFont.Symbols[str[j]].Y + FontManager.TextureYCoord(myFont.Symbols[str[j]].Height));
+          x += myFont.Symbols[str[j]].Width * k + 1;
+        }
+        point.Y += glyphHeight;
+      }
+      _stringLens.Add(realStrLen);
+      _actions.Add(DrawActions.DrawString);
 #if !debug
       Size textSize = TextRenderer.MeasureText(s, font);
       Bitmap tmp = new Bitmap(textSize.Width, textSize.Height);
@@ -318,10 +370,10 @@ namespace GraphicLib.OpenGL
         Swap(ref y1, ref y2);
         Swap(ref x1, ref x2);
       }
-// ReSharper disable CompareOfFloatsByEqualityOperator
-      if(d1 == 0.0f && d2 == 0.0f)
-// ReSharper restore CompareOfFloatsByEqualityOperator
+      if(d1 <= 0.0f && d2 <= 0.0f)
+      {
         d1 = 1.0f;
+      }
       float vx = x2 - x1, vy = y2 - y1;
       float len = (float)Math.Sqrt(vx * vx + vy * vy);
       vx /= len;
@@ -397,9 +449,11 @@ namespace GraphicLib.OpenGL
       GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
       int clipAreaNumber = 0;
+      int stringNumber = 0;
       _polygonShader.UploadDataToGPU();
       _textureShader.UploadDataToGPU();
       _ellipseShader.UploadDataToGPU();
+      _fontShader.UploadDataToGPU();
 
       foreach(var drawAction in _actions)
       {
@@ -421,6 +475,14 @@ namespace GraphicLib.OpenGL
                        _clipAreaRects[clipAreaNumber].Height);
             clipAreaNumber++;
             break;
+          case DrawActions.DrawString:
+            _fontShader.Bind();
+            for(int i = 0; i < _stringLens[stringNumber]; i++)
+            {
+              _fontShader.DrawNext();
+            }
+            stringNumber++;
+            break;
           default:
             throw new ArgumentOutOfRangeException();
         }
@@ -431,8 +493,10 @@ namespace GraphicLib.OpenGL
       _polygonShader.Clear();
       _textureShader.Clear();
       _ellipseShader.Clear();
+      _fontShader.Clear();
       _actions.Clear();
       _clipAreaRects.Clear();
+      _stringLens.Clear();
 
       #endregion
 
