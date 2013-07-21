@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Empty\EmptyGraphics.cs" />
+    <Compile Include="OpenGL\GlyphData.cs" />
     <Compile Include="OpenGL\MyCharCharComparer.cs" />
     <Compile Include="OpenGL\DrawActions.cs" />
     <Compile Include="OpenGL\EllipseData.cs" />

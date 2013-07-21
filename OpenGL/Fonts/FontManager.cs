@@ -69,23 +69,36 @@ namespace GraphicLib.OpenGL.Fonts
           {
             FontInfo fontInfo;
             ParseBasicFontInfo(line, out fontInfo);
-            string str, showing = "";
+            string str; //, showing = "";
             Fonts.Add(new MyFont(fontInfo));
-            while((str = reader.ReadLine()) != "kerning pairs:")
+            while(true)
             {
+              str = reader.ReadLine();
+              if(string.IsNullOrWhiteSpace(str) 
+                || str == "kerning pairs:")
+              {
+                break;
+              }
               line = str.Split('\t');
-              showing += Char.ConvertFromUtf32(Int32.Parse(line[0]));
+              //showing += Char.ConvertFromUtf32(Int32.Parse(line[0]));
               Fonts[Fonts.Count - 1].AddSymbol(Char.ConvertFromUtf32(Int32.Parse(line[0]))[0],
-                                               TextureXCoord(Int32.Parse(line[1])/* + Int32.Parse(line[5])*/),
-                                               TextureYCoord(Int32.Parse(line[2])/* + Int32.Parse(line[6])*/),
-                                               Int32.Parse(line[3]),
-                                               Int32.Parse(line[4]));
+                                               new GlyphData
+                                                 {
+                                                   XPos = Int32.Parse(line[1]),
+                                                   YPos = Int32.Parse(line[2]),
+                                                   Width = Int32.Parse(line[3]),
+                                                   Height = Int32.Parse(line[4]),
+                                                   XOffset = Int32.Parse(line[5]),
+                                                   YOffset = Int32.Parse(line[6]),
+                                                   OrigW = Int32.Parse(line[7]),
+                                                   OrigH = Int32.Parse(line[8])
+                                                 });
             }
             Fonts[Fonts.Count - 1].FontInfo.Height = Int32.Parse(line[8]);
             while(true)
             {
               str = reader.ReadLine();
-              if(str == string.Empty)
+              if(string.IsNullOrWhiteSpace(str))
               {
                 return;
               }

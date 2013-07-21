@@ -227,24 +227,28 @@ namespace GraphicLib.OpenGL
             continue;
           }
           //Верхний треугольник
-          _fontShader.AddVertex(x, point.Y + (glyphHeight - myFont.Symbols[str[j]].Height * k), myFont.Symbols[str[j]].X, myFont.Symbols[str[j]].Y);
-          _fontShader.AddVertex(x + myFont.Symbols[str[j]].Width * k, point.Y + (glyphHeight - myFont.Symbols[str[j]].Height * k),
-                                myFont.Symbols[str[j]].X + FontManager.TextureXCoord(myFont.Symbols[str[j]].Width),
-                                myFont.Symbols[str[j]].Y);
-          _fontShader.AddVertex(x, point.Y + myFont.Symbols[str[j]].Height * k + (glyphHeight - myFont.Symbols[str[j]].Height * k),
-                                myFont.Symbols[str[j]].X,
-                                myFont.Symbols[str[j]].Y + FontManager.TextureYCoord(myFont.Symbols[str[j]].Height));
+          _fontShader.AddVertex(x + myFont.Symbols[str[j]].XOffset * k, point.Y + myFont.Symbols[str[j]].YOffset * k,// + (glyphHeight - myFont.Symbols[str[j]].Height * k),
+                                FontManager.TextureXCoord(myFont.Symbols[str[j]].XPos),
+                                FontManager.TextureYCoord(myFont.Symbols[str[j]].YPos));
+          _fontShader.AddVertex(x + myFont.Symbols[str[j]].XOffset * k + myFont.Symbols[str[j]].Width * k,
+                                point.Y + myFont.Symbols[str[j]].YOffset * k,// + (glyphHeight - myFont.Symbols[str[j]].Height * k),
+                                FontManager.TextureXCoord(myFont.Symbols[str[j]].XPos + myFont.Symbols[str[j]].Width),
+                                FontManager.TextureYCoord(myFont.Symbols[str[j]].YPos));
+          _fontShader.AddVertex(x + myFont.Symbols[str[j]].XOffset * k, point.Y + myFont.Symbols[str[j]].YOffset * k + myFont.Symbols[str[j]].Height * k,// + (glyphHeight - myFont.Symbols[str[j]].Height * k),
+                                FontManager.TextureXCoord(myFont.Symbols[str[j]].XPos),
+                                FontManager.TextureYCoord(myFont.Symbols[str[j]].YPos + myFont.Symbols[str[j]].Height));
           //Нижний треугольник
-          _fontShader.AddVertex(x + myFont.Symbols[str[j]].Width * k, point.Y + (glyphHeight - myFont.Symbols[str[j]].Height * k),
-                                myFont.Symbols[str[j]].X + FontManager.TextureXCoord(myFont.Symbols[str[j]].Width),
-                                myFont.Symbols[str[j]].Y);
-          _fontShader.AddVertex(x + myFont.Symbols[str[j]].Width * k, point.Y + myFont.Symbols[str[j]].Height * k + (glyphHeight - myFont.Symbols[str[j]].Height * k),
-                                myFont.Symbols[str[j]].X + FontManager.TextureXCoord(myFont.Symbols[str[j]].Width),
-                                myFont.Symbols[str[j]].Y + FontManager.TextureYCoord(myFont.Symbols[str[j]].Height));
-          _fontShader.AddVertex(x, point.Y + myFont.Symbols[str[j]].Height * k + (glyphHeight - myFont.Symbols[str[j]].Height * k),
-                                myFont.Symbols[str[j]].X,
-                                myFont.Symbols[str[j]].Y + FontManager.TextureYCoord(myFont.Symbols[str[j]].Height));
-          x += myFont.Symbols[str[j]].Width * k + 1;
+          _fontShader.AddVertex(x + myFont.Symbols[str[j]].XOffset * k + myFont.Symbols[str[j]].Width * k, point.Y + myFont.Symbols[str[j]].YOffset * k,// + (glyphHeight - myFont.Symbols[str[j]].Height * k),
+                                FontManager.TextureXCoord(myFont.Symbols[str[j]].XPos + myFont.Symbols[str[j]].Width),
+                                FontManager.TextureYCoord(myFont.Symbols[str[j]].YPos));
+          _fontShader.AddVertex(x + myFont.Symbols[str[j]].XOffset * k + myFont.Symbols[str[j]].Width * k,
+                                point.Y + myFont.Symbols[str[j]].YOffset * k + myFont.Symbols[str[j]].Height * k,// + (glyphHeight - myFont.Symbols[str[j]].Height * k),
+                                FontManager.TextureXCoord(myFont.Symbols[str[j]].XPos + myFont.Symbols[str[j]].Width),
+                                FontManager.TextureYCoord(myFont.Symbols[str[j]].YPos + myFont.Symbols[str[j]].Height));
+          _fontShader.AddVertex(x + myFont.Symbols[str[j]].XOffset * k, point.Y + myFont.Symbols[str[j]].YOffset * k + myFont.Symbols[str[j]].Height * k,// + (glyphHeight - myFont.Symbols[str[j]].Height * k),
+                                FontManager.TextureXCoord(myFont.Symbols[str[j]].XPos),
+                                FontManager.TextureYCoord(myFont.Symbols[str[j]].YPos + myFont.Symbols[str[j]].Height));
+          x += myFont.Symbols[str[j]].OrigW * k;
         }
         point.Y += glyphHeight;
       }
