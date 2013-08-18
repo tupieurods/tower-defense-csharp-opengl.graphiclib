@@ -30,13 +30,10 @@ namespace GraphicLib.OpenGL
 
       if(!DisposeAfterFirstUse)
       {
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, 1);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, 10);
       }
 
-      /*GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-      GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);*/
-
-      GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+      GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
       GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
     }
 
@@ -44,6 +41,11 @@ namespace GraphicLib.OpenGL
     {
       GL.ActiveTexture(textureUnit);
       GL.BindTexture(TextureTarget.Texture2D, GlHandle);
+    }
+
+    public override int GetHashCode()
+    {
+      return GlHandle;
     }
 
     #region Disposable

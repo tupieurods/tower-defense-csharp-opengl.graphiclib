@@ -121,6 +121,12 @@
   <data name="EllipseFragment" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\EllipseFragment.frag;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="FontFragment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\FontFragment.frag;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="FontVertex" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\FontVertex.vert;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="SimpleFragmentShader" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\SimpleFragmentShader.frag;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>

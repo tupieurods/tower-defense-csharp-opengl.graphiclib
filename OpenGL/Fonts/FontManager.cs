@@ -10,7 +10,6 @@ namespace GraphicLib.OpenGL.Fonts
   internal static class FontManager
   {
     private static readonly List<MyFont> Fonts = new List<MyFont>();
-    internal static Texture FontTexture;
 
     internal static void LoadFonts(string path)
     {
@@ -63,29 +62,46 @@ namespace GraphicLib.OpenGL.Fonts
         using(StreamReader reader = new StreamReader(new FileStream(path, FileMode.Open)))
         {
           string textureFileName = reader.ReadLine().Substring("textures: ".Length);
-          FontTexture = new Texture(new Bitmap(directory + textureFileName));
-          string[] line = reader.ReadLine().Split(' ');
+          Texture FontTexture = new Texture(new Bitmap(directory + textureFileName));
+          string str = reader.ReadLine();
           while(true)
           {
             FontInfo fontInfo;
+            if(str == null)
+            {
+              break;
+            }
+            string[] line = str.Split(' ');
             ParseBasicFontInfo(line, out fontInfo);
-            string str; //, showing = "";
-            Fonts.Add(new MyFont(fontInfo));
+            //string showing = "";
+            Fonts.Add(new MyFont(fontInfo, FontTexture));
+            bool flag = true;
             while(true)
             {
               str = reader.ReadLine();
-              if(string.IsNullOrWhiteSpace(str) 
-                || str == "kerning pairs:")
+              if(str == "kerning pairs:")
               {
                 break;
               }
+              if(string.IsNullOrWhiteSpace(str) 
+                || str.IndexOf("\t", StringComparison.Ordinal) == -1)
+              {
+                flag = false;
+                break;
+              }
               line = str.Split('\t');
+              if(Fonts[Fonts.Count - 1].FontInfo.Height == 0)
+              {
+                Fonts[Fonts.Count - 1].FontInfo.Height = Int32.Parse(line[8]);
+              }
               //showing += Char.ConvertFromUtf32(Int32.Parse(line[0]));
               Fonts[Fonts.Count - 1].AddSymbol(Char.ConvertFromUtf32(Int32.Parse(line[0]))[0],
                                                new GlyphData
                                                  {
-                                                   XPos = Int32.Parse(line[1]),
-                                                   YPos = Int32.Parse(line[2]),
+                                                   TextureXPos = Single.Parse(line[1]) / FontTexture.Width,
+                                                   TextureYPos = Single.Parse(line[2]) / FontTexture.Height,
+                                                   TextureWidth = (Single.Parse(line[1]) + Single.Parse(line[3])) / FontTexture.Width,
+                                                   TextureHeight = (Single.Parse(line[2]) + Single.Parse(line[4])) / FontTexture.Height,
                                                    Width = Int32.Parse(line[3]),
                                                    Height = Int32.Parse(line[4]),
                                                    XOffset = Int32.Parse(line[5]),
@@ -94,8 +110,7 @@ namespace GraphicLib.OpenGL.Fonts
                                                    OrigH = Int32.Parse(line[8])
                                                  });
             }
-            Fonts[Fonts.Count - 1].FontInfo.Height = Int32.Parse(line[8]);
-            while(true)
+            while(flag)
             {
               str = reader.ReadLine();
               if(string.IsNullOrWhiteSpace(str))
@@ -106,12 +121,11 @@ namespace GraphicLib.OpenGL.Fonts
               int check;
               if(!Int32.TryParse(line[0], out check))
               {
-                line = str.Split(' ');
                 break;
               }
               Fonts[Fonts.Count - 1].AddKerningPair(Char.ConvertFromUtf32(Int32.Parse(line[0]))[0],
                                                     Char.ConvertFromUtf32(Int32.Parse(line[1]))[0],
-                                                    Int32.Parse(line[2]));
+                                                    Single.Parse(line[2].Replace('.', ',')));
             }
           }
         }
@@ -135,8 +149,11 @@ namespace GraphicLib.OpenGL.Fonts
       {
         result++;
       }
-      int fontPt = Fonts[myFontIndex].FontInfo.Pt <= 12 ? 12 : 72;
-      if(Math.Abs(fontPt - font.SizeInPoints) <= 0.1)
+      if(Math.Abs(Fonts[myFontIndex].FontInfo.Pt - font.SizeInPoints) <= 1)
+      {
+        result++;
+      }
+      if(Fonts[myFontIndex].FontInfo.Pt >= font.SizeInPoints)
       {
         result++;
       }
@@ -155,10 +172,6 @@ namespace GraphicLib.OpenGL.Fonts
     {
       int result = 0;
       int comparePoints = CompareFonts(0, font);
-      if(comparePoints == 4)
-      {
-        return 0;
-      }
       for(int i = 1; i < Fonts.Count; i++)
       {
         int currentComparePoints = CompareFonts(i, font);
@@ -168,10 +181,10 @@ namespace GraphicLib.OpenGL.Fonts
         }
         result = i;
         comparePoints = currentComparePoints;
-        if(comparePoints == 4)
+        /*if(comparePoints == 5)
         {
           return result;
-        }
+        }*/
       }
       return result;
     }
@@ -179,16 +192,6 @@ namespace GraphicLib.OpenGL.Fonts
     public static MyFont GetFont(int index)
     {
       return Fonts[index];
-    }
-
-    public static float TextureXCoord(float x)
-    {
-      return x / FontTexture.Width;
-    }
-
-    public static float TextureYCoord(float y)
-    {
-      return y / FontTexture.Height;
     }
   }
 }

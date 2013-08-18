@@ -86,6 +86,8 @@
   <ItemGroup>
     <None Include="Resources\EllipseFragment.frag" />
     <None Include="Resources\SimpleFragmentShader.frag" />
+    <None Include="Resources\FontFragment.frag" />
+    <None Include="Resources\FontVertex.vert" />
     <None Include="Resources\SimpleVertexShader.vert" />
     <None Include="Resources\SimpleTextureFragment.frag" />
     <None Include="Resources\SimpleTextureVertex.vert" />
