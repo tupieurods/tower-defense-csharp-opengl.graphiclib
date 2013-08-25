@@ -12,7 +12,8 @@ namespace GraphicLib.OpenGL
     /// <returns>
     /// Значение true, если указанные объекты равны; в противном случае — значение false.
     /// </returns>
-    /// <param name="x">Первый сравниваемый объект типа <paramref name="T"/>.</param><param name="y">Второй сравниваемый объект типа <paramref name="T"/>.</param>
+    /// <param name="x">Первый сравниваемый объект.</param>
+    /// <param name="y">Второй сравниваемый объект.</param>
     public bool Equals(KeyValuePair<char, char> x, KeyValuePair<char, char> y)
     {
       return (x.Key == y.Key && x.Value == y.Value);

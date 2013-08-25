@@ -63,7 +63,7 @@ namespace GraphicLib.OpenGL.Fonts
         using(StreamReader reader = new StreamReader(new FileStream(path, FileMode.Open)))
         {
           string textureFileName = reader.ReadLine().Substring("textures: ".Length);
-          Texture FontTexture = new Texture(new Bitmap(directory + textureFileName));
+          Texture fontTexture = new Texture(new Bitmap(directory + textureFileName));
           string str = reader.ReadLine();
           while(true)
           {
@@ -76,10 +76,10 @@ namespace GraphicLib.OpenGL.Fonts
             ParseBasicFontInfo(line, out fontInfo);
             if(fontInfo.Pt == DistanceFieldPt)
             {
-              FontTexture.SetLinearFilter();
+              fontTexture.SetLinearFilter();
             }
             //string showing = "";
-            Fonts.Add(new MyFont(fontInfo, FontTexture));
+            Fonts.Add(new MyFont(fontInfo, fontTexture));
             bool flag = true;
             while(true)
             {
@@ -103,10 +103,10 @@ namespace GraphicLib.OpenGL.Fonts
               Fonts[Fonts.Count - 1].AddSymbol(Char.ConvertFromUtf32(Int32.Parse(line[0]))[0],
                                                new GlyphData
                                                  {
-                                                   TextureXPos = Single.Parse(line[1]) / FontTexture.Width,
-                                                   TextureYPos = Single.Parse(line[2]) / FontTexture.Height,
-                                                   TextureWidth = (Single.Parse(line[1]) + Single.Parse(line[3])) / FontTexture.Width,
-                                                   TextureHeight = (Single.Parse(line[2]) + Single.Parse(line[4])) / FontTexture.Height,
+                                                   TextureXPos = Single.Parse(line[1]) / fontTexture.Width,
+                                                   TextureYPos = Single.Parse(line[2]) / fontTexture.Height,
+                                                   TextureWidth = (Single.Parse(line[1]) + Single.Parse(line[3])) / fontTexture.Width,
+                                                   TextureHeight = (Single.Parse(line[2]) + Single.Parse(line[4])) / fontTexture.Height,
                                                    Width = Int32.Parse(line[3]),
                                                    Height = Int32.Parse(line[4]),
                                                    XOffset = Int32.Parse(line[5]),

@@ -2,14 +2,10 @@
 {
   internal enum DrawActions
   {
-    FillRectangle,
     Polygon,
-    FillEllipse,
     DrawImage,
     DrawStringDistanceField,
     DrawStringNormal,
-    DrawLine,
-    DrawRectangle,
     DrawEllipse,
     ClipArea
   };

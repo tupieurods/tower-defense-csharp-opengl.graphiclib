@@ -28,16 +28,6 @@ namespace GraphicLib.OpenGL
       this.Uniform1("Texture", 1);
     }
 
-    public void AddTask(Texture texture, IList<float> positions)
-    {
-      if(positions.Count != 16)
-      {
-        throw new ArgumentException("Positions array should have 16 elements");
-      }
-      _textures.Add(texture);
-      Verticies.AddRange(positions);
-    }
-
     public void AddTexture(Texture texture)
     {
       _textures.Add(texture);

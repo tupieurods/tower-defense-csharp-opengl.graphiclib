@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Text;
-using System.Windows.Forms;
 using GraphicLib.Interfaces;
 using GraphicLib.OpenGL.Fonts;
 using GraphicLib.OpenGL.Shaders;

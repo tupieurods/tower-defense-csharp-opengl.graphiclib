@@ -68,7 +68,6 @@
     <Compile Include="OpenGL\Shaders\TextureShader.cs" />
     <Compile Include="OpenGL\VaoAndVbo\VAO.cs" />
     <Compile Include="OpenGL\VaoAndVbo\VBO.cs" />
-    <Compile Include="OpenGL\VaoAndVbo\VBOdata.cs" />
     <Compile Include="OpenGL\VaoAndVbo\VBONotFoundException.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
