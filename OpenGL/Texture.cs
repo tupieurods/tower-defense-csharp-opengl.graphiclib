@@ -12,7 +12,8 @@ namespace GraphicLib.OpenGL
     public int Height { get; set; }
     internal bool DisposeAfterFirstUse { get; private set; }
 
-    public Texture(Bitmap bitmap, bool disposeAfterFirstUse = false)
+    public Texture(Bitmap bitmap, bool disposeAfterFirstUse = false,
+        bool setLinearFilter = false, bool setNearestFilter = true)
     {
       GlHandle = GL.GenTexture();
       //Bind();
@@ -27,14 +28,27 @@ namespace GraphicLib.OpenGL
       GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmapData.Width, bitmapData.Height, 0,
                     OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, bitmapData.Scan0);
       bitmap.UnlockBits(bitmapData);
-
-      if(!DisposeAfterFirstUse)
+      GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, 3);
+      if(setLinearFilter)
       {
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, 10);
+        SetLinearFilter();
       }
+      if(setNearestFilter)
+      {
+        this.setNearestFilter();
+      }
+    }
 
+    public void SetLinearFilter()
+    {
       GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
       GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+    }
+
+    public void setNearestFilter()
+    {
+      GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.NearestMipmapNearest);
+      GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
     }
 
     public void Bind(TextureUnit textureUnit)

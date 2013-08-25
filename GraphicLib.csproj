@@ -59,6 +59,8 @@
     <Compile Include="OpenGL\Matrix.cs" />
     <Compile Include="OpenGL\OpenGLGraphic.cs" />
     <Compile Include="OpenGL\Shaders\FontShader.cs" />
+    <Compile Include="OpenGL\Shaders\FontShaderDistanceField.cs" />
+    <Compile Include="OpenGL\Shaders\FontShaderNormal.cs" />
     <Compile Include="OpenGL\Shaders\ShaderParametrNotFoundException.cs" />
     <Compile Include="OpenGL\Shaders\ShaderProgram.cs" />
     <Compile Include="OpenGL\Shaders\SimpleShader.cs" />
@@ -86,7 +88,7 @@
   <ItemGroup>
     <None Include="Resources\EllipseFragment.frag" />
     <None Include="Resources\SimpleFragmentShader.frag" />
-    <None Include="Resources\FontFragment.frag" />
+    <None Include="Resources\FontFragmentDistanceField.frag" />
     <None Include="Resources\FontVertex.vert" />
     <None Include="Resources\SimpleVertexShader.vert" />
     <None Include="Resources\SimpleTextureFragment.frag" />
@@ -94,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="License.txt" />
+    <None Include="Resources\FontFragmentSimple.frag" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

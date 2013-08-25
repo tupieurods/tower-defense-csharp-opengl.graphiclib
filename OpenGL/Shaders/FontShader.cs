@@ -7,36 +7,17 @@ using OpenTK.Graphics.OpenGL;
 
 namespace GraphicLib.OpenGL.Shaders
 {
-  internal class FontShader: ShaderProgram
+  internal abstract class FontShader: ShaderProgram
   {
     private readonly List<int> _stringLens = new List<int>();
     private readonly List<Color> _colors = new List<Color>();
-    private readonly List<Texture> _fontTextures = new List<Texture>(); 
+    protected readonly List<Texture> _fontTextures = new List<Texture>();
     private int _trianglesOffset;
 
     /// <summary>
     /// constant for color convertion
     /// </summary>
     private const float ColorFloat = 1.0f / 255.0f;
-
-    public FontShader()
-    {
-      byte[] shaderByteSource = Properties.Resources.FontVertex;
-      string shaderStr = shaderByteSource.Aggregate("", (current, t) => current + Convert.ToChar(t));
-      if(!AddShader(ShaderType.VertexShader, shaderStr))
-      {
-        throw new Exception("Cannot create vertex shader");
-      }
-      shaderByteSource = Properties.Resources.FontFragment;
-      shaderStr = shaderByteSource.Aggregate("", (current, t) => current + Convert.ToChar(t));
-      if(!AddShader(ShaderType.FragmentShader, shaderStr))
-      {
-        throw new Exception("Cannot create fragment shader");
-      }
-      LinkShaderProgram();
-      Vao.Resize(BufferTarget.ArrayBuffer, 10000);
-      Uniform1("Texture", 3);
-    }
 
     private void AddVertex(float x, float y, float texCoord1, float texCoord2)
     {
@@ -105,7 +86,7 @@ namespace GraphicLib.OpenGL.Shaders
       _fontTextures.Add(myFont.FontTexture);
     }
 
-    public void Bind()
+    public virtual void Bind()
     {
       _fontTextures[CurrentTask].Bind(TextureUnit.Texture3);
     }

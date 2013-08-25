@@ -67,9 +67,16 @@ namespace GraphicLib.Properties {
             }
         }
         
-        public static byte[] FontFragment {
+        public static byte[] FontFragmentDistanceField {
             get {
-                object obj = ResourceManager.GetObject("FontFragment", resourceCulture);
+                object obj = ResourceManager.GetObject("FontFragmentDistanceField", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        public static byte[] FontFragmentSimple {
+            get {
+                object obj = ResourceManager.GetObject("FontFragmentSimple", resourceCulture);
                 return ((byte[])(obj));
             }
         }

@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Text;
+using System.Windows.Forms;
 using GraphicLib.Interfaces;
 using GraphicLib.OpenGL.Fonts;
 using GraphicLib.OpenGL.Shaders;
@@ -38,7 +40,8 @@ namespace GraphicLib.OpenGL
     /// </summary>
     private readonly TextureShader _textureShader;
 
-    private readonly FontShader _fontShader;
+    private readonly FontShaderDistanceField _fontShaderDistanceField;
+    private readonly FontShaderNormal _fontShaderNormal;
 
     /// <summary>
     /// Shader for ellipse drawing and filling
@@ -72,7 +75,8 @@ namespace GraphicLib.OpenGL
       _polygonShader = new SimpleShader();
       _textureShader = new TextureShader();
       _ellipseShader = new EllipseShader();
-      _fontShader = new FontShader();
+      _fontShaderDistanceField = new FontShaderDistanceField();
+      _fontShaderNormal = new FontShaderNormal();
       Resize(windowSize.Width, windowSize.Height, 1.0f);
     }
 
@@ -132,7 +136,8 @@ namespace GraphicLib.OpenGL
       _polygonShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
       _textureShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
       _ellipseShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
-      _fontShader.UniformMatrix4("projectionMatrix", projectionMatrix, false);
+      _fontShaderDistanceField.UniformMatrix4("projectionMatrix", projectionMatrix, false);
+      _fontShaderNormal.UniformMatrix4("projectionMatrix", projectionMatrix, false);
       _ellipseShader.WindowHeight = _windowSize.Height;
       return true;
     }
@@ -209,9 +214,6 @@ namespace GraphicLib.OpenGL
     /// <param name="point">The point.</param>
     public void DrawString(string s, Font font, Brush brush, PointF point)
     {
-      _fontShader.AddTask(s, font, brush, point);
-      
-      _actions.Add(DrawActions.DrawString);
 #if !debug
       Size textSize = TextRenderer.MeasureText(s, font);
       Bitmap tmp = new Bitmap(textSize.Width, textSize.Height);
@@ -220,6 +222,17 @@ namespace GraphicLib.OpenGL
       canva.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
       canva.DrawString(s, font, brush, 0, 0);
       DrawTexture(new Texture(tmp, true), (int)point.X, (int)point.Y, tmp.Width, tmp.Height);
+#else
+      if(font.SizeInPoints >= FontManager.DistanceFieldPt)
+      {
+        _fontShaderDistanceField.AddTask(s, font, brush, point);
+        _actions.Add(DrawActions.DrawStringDistanceField);
+      }
+      else
+      {
+        _fontShaderNormal.AddTask(s, font, brush, point);
+        _actions.Add(DrawActions.DrawStringNormal);
+      }
 #endif
     }
 
@@ -414,7 +427,8 @@ namespace GraphicLib.OpenGL
       _polygonShader.UploadDataToGPU();
       _textureShader.UploadDataToGPU();
       _ellipseShader.UploadDataToGPU();
-      _fontShader.UploadDataToGPU();
+      _fontShaderDistanceField.UploadDataToGPU();
+      _fontShaderNormal.UploadDataToGPU();
 
       foreach(var drawAction in _actions)
       {
@@ -436,9 +450,11 @@ namespace GraphicLib.OpenGL
                        _clipAreaRects[clipAreaNumber].Height);
             clipAreaNumber++;
             break;
-          case DrawActions.DrawString:
-            _fontShader.DrawNext();
-            
+          case DrawActions.DrawStringDistanceField:
+            _fontShaderDistanceField.DrawNext();
+            break;
+          case DrawActions.DrawStringNormal:
+            _fontShaderNormal.DrawNext();
             break;
           default:
             throw new ArgumentOutOfRangeException();
@@ -450,7 +466,8 @@ namespace GraphicLib.OpenGL
       _polygonShader.Clear();
       _textureShader.Clear();
       _ellipseShader.Clear();
-      _fontShader.Clear();
+      _fontShaderDistanceField.Clear();
+      _fontShaderNormal.Clear();
       _actions.Clear();
       _clipAreaRects.Clear();
 

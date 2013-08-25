@@ -10,6 +10,7 @@ namespace GraphicLib.OpenGL.Fonts
   internal static class FontManager
   {
     private static readonly List<MyFont> Fonts = new List<MyFont>();
+    internal static readonly int DistanceFieldPt = 30;
 
     internal static void LoadFonts(string path)
     {
@@ -73,6 +74,10 @@ namespace GraphicLib.OpenGL.Fonts
             }
             string[] line = str.Split(' ');
             ParseBasicFontInfo(line, out fontInfo);
+            if(fontInfo.Pt == DistanceFieldPt)
+            {
+              FontTexture.SetLinearFilter();
+            }
             //string showing = "";
             Fonts.Add(new MyFont(fontInfo, FontTexture));
             bool flag = true;
@@ -153,7 +158,11 @@ namespace GraphicLib.OpenGL.Fonts
       {
         result++;
       }
-      if(Fonts[myFontIndex].FontInfo.Pt >= font.SizeInPoints)
+      if(Fonts[myFontIndex].FontInfo.Pt == (int)font.SizeInPoints)
+      {
+        result++;
+      }
+      if((int)font.SizeInPoints >= DistanceFieldPt)
       {
         result++;
       }
